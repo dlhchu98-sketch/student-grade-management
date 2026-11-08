@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduManager Pro — Hệ thống Quản lý Sinh viên & Điểm thi</title>
+  <style>
+    :root {
+      --primary: #1e40af;
+      --primary-hover: #1d4ed8;
+      --primary-light: #dbeafe;
+      --secondary: #0f172a;
+      --accent: #0284c7;
+      --success: #059669;
+      --success-bg: #d1fae5;
+      --warning: #d97706;
+      --warning-bg: #fef3c7;
+      --danger: #dc2626;
+      --danger-bg: #fee2e2;
+      --bg-body: #f1f5f9;
+      --bg-card: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    .topbar {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 1rem 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.18);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.14);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .brand-title h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .brand-title p {
+      font-size: 0.8rem;
+      color: #93c5fd;
+    }
+
+    .db-status-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(15, 23, 42, 0.45);
+      border: 1px solid rgba(147, 197, 253, 0.3);
+      padding: 0.45rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      color: #e0f2fe;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background-color: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    /* NAVIGATION TABS */
+    .nav-container {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.75rem;
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+    }
+
+    .nav-tab {
+      border: none;
+      background: transparent;
+      padding: 0.95rem 1.25rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+    }
+
+    .nav-tab:hover {
+      color: var(--primary);
+      background: #f8fafc;
+    }
+
+    .nav-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: #eff6ff;
+    }
+
+    .tab-count {
+      background: #e2e8f0;
+      color: #334155;
+      font-size: 0.75rem;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .nav-tab.active .tab-count {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* MAIN CONTENT */
+    .main-container {
+      max-width: 1400px;
+      width: 100%;
+      margin: 1.5rem auto;
+      padding: 0 1.5rem;
+      flex: 1;
+    }
+
+    .tab-section {
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .tab-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* KPI STATS GRID */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 1.15rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .kpi-info h3 {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .kpi-info .kpi-value {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--secondary);
+    }
+
+    .kpi-info .kpi-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .kpi-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .icon-blue { background: #dbeafe; color: #1d4ed8; }
+    .icon-green { background: #d1fae5; color: #059669; }
+    .icon-purple { background: #ede9fe; color: #6d28d9; }
+    .icon-amber { background: #fef3c7; color: #d97706; }
+    .icon-cyan { background: #cffafe; color: #0891b2; }
+
+    /* DASHBOARD PANELS */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 992px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* WORKSPACE LAYOUT (FORM + TABLE) */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 370px 1fr;
+      gap: 1.35rem;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      background: #f8fafc;
+    }
+
+    .card-header h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-body {
+      padding: 1.25rem;
+    }
+
+    /* FORMS */
+    .form-group {
+      margin-bottom: 0.95rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 0.35rem;
+    }
+
+    label .req {
+      color: var(--danger);
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="number"],
+    input[type="date"],
+    select {
+      width: 100%;
+      padding: 0.58rem 0.75rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: var(--text-main);
+      background: #fff;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.14);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: 1.1rem;
+    }
+
+    /* BUTTONS */
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      flex: 1;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .btn-secondary:hover {
+      background: #cbd5e1;
+    }
+
+    .btn-sm {
+      padding: 0.35rem 0.65rem;
+      font-size: 0.78rem;
+      border-radius: 6px;
+    }
+
+    .btn-edit {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    .btn-edit:hover {
+      background: #dbeafe;
+    }
+
+    .btn-delete {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .btn-delete:hover {
+      background: #fee2e2;
+    }
+
+    /* FILTER BAR */
+    .toolbar {
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-box {
+      position: relative;
+      min-width: 240px;
+      flex: 1;
+    }
+
+    .search-box input {
+      padding-left: 2.1rem;
+    }
+
+    .search-box::before {
+      content: "🔍";
+      position: absolute;
+      left: 0.65rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.85rem;
+      opacity: 0.65;
+    }
+
+    /* TABLES */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 700;
+      text-align: left;
+      padding: 0.8rem 0.9rem;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 0.8rem 0.9rem;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+
+    tr:hover td {
+      background-color: #f8fafc;
+    }
+
+    .code-badge {
+      font-family: Consolas, Monaco, monospace;
+      font-weight: 700;
+      font-size: 0.8rem;
+      background: #f1f5f9;
+      color: #1e293b;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .badge-success { background: var(--success-bg); color: var(--success); }
+    .badge-info { background: #dbeafe; color: #1d4ed8; }
+    .badge-warning { background: var(--warning-bg); color: var(--warning); }
+    .badge-danger { background: var(--danger-bg); color: var(--danger); }
+
+    .action-group {
+      display: flex;
+      gap: 0.4rem;
+      white-space: nowrap;
+    }
+
+    /* GRADE DISTRIBUTION BARS */
+    .dist-item {
+      margin-bottom: 1rem;
+    }
+
+    .dist-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+
+    .progress-track {
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    /* SCORE PREVIEW BOX */
+    .score-preview {
+      background: #f0f9ff;
+      border: 1px dashed #7dd3fc;
+      border-radius: 8px;
+      padding: 0.7rem 0.9rem;
+      margin-bottom: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .score-preview strong {
+      font-size: 1.05rem;
+      color: #0369a1;
+    }
+
+    /* TOAST NOTIFICATIONS */
+    #toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      max-width: 390px;
+    }
+
+    .toast {
+      background: #fff;
+      border-left: 5px solid var(--primary);
+      padding: 0.9rem 1.1rem;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.16);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      animation: slideIn 0.25s ease;
+    }
+
+    .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.warning { border-left-color: var(--warning); }
+
+    .toast-content h4 {
+      font-size: 0.88rem;
+      margin-bottom: 0.15rem;
+    }
+
+    .toast-content p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .toast-close {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    .mode-indicator {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      background: #dbeafe;
+      color: #1e40af;
+      font-weight: 700;
+    }
+
+    .mode-indicator.editing {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.2rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      background: #fff;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">🎓</div>
+      <div class="brand-title">
+        <h1>HỆ THỐNG QUẢN LÝ SINH VIÊN VÀ ĐIỂM THI</h1>
+        <p>FastAPI Backend • Microsoft SQL Server • Pydantic Validation</p>
+      </div>
+    </div>
+    <div class="db-status-badge" id="db-status">
+      <span class="status-dot"></span>
+      <span id="db-status-text">Đang kết nối SQL Server...</span>
+    </div>
+  </header>
+
+  <!-- NAVIGATION TABS -->
+  <nav class="nav-container">
+    <button class="nav-tab active" onclick="switchTab('dashboard')" id="tab-btn-dashboard">
+      📊 Dashboard Tổng quan
+    </button>
+    <button class="nav-tab" onclick="switchTab('students')" id="tab-btn-students">
+      👨‍🎓 Sinh viên <span class="tab-count" id="nav-count-students">0</span>
+    </button>
+    <button class="nav-tab" onclick="switchTab('classes')" id="tab-btn-classes">
+      🏫 Lớp học <span class="tab-count" id="nav-count-classes">0</span>
+    </button>
+    <button class="nav-tab" onclick="switchTab('subjects')" id="tab-btn-subjects">
+      📚 Môn học <span class="tab-count" id="nav-count-subjects">0</span>
+    </button>
+    <button class="nav-tab" onclick="switchTab('scores')" id="tab-btn-scores">
+      📝 Điểm thi <span class="tab-count" id="nav-count-scores">0</span>
+    </button>
+  </nav>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="main-container">
+
+    <!-- ==================== 1. TAB DASHBOARD ==================== -->
+    <section id="tab-dashboard" class="tab-section active">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-info">
+            <h3>Tổng số Sinh viên</h3>
+            <div class="kpi-value" id="kpi-students">0</div>
+            <div class="kpi-sub">Đang theo học tại trường</div>
+          </div>
+          <div class="kpi-icon icon-blue">👨‍🎓</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-info">
+            <h3>Tổng số Lớp học</h3>
+            <div class="kpi-value" id="kpi-classes">0</div>
+            <div class="kpi-sub">Lớp hành chính / chuyên ngành</div>
+          </div>
+          <div class="kpi-icon icon-purple">🏫</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-info">
+            <h3>Tổng số Môn học</h3>
+            <div class="kpi-value" id="kpi-subjects">0</div>
+            <div class="kpi-sub">Học phần đào tạo</div>
+          </div>
+          <div class="kpi-icon icon-amber">📚</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-info">
+            <h3>Bản ghi Điểm thi</h3>
+            <div class="kpi-value" id="kpi-scores">0</div>
+            <div class="kpi-sub">Điểm TB: <strong id="kpi-avg-score">0.0</strong> | Đạt: <strong id="kpi-pass-rate">0%</strong></div>
+          </div>
+          <div class="kpi-icon icon-green">📝</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Phân bố học lực -->
+        <div class="card">
+          <div class="card-header">
+            <h2>📈 Thống kê Phân loại Kết quả Học tập</h2>
+            <button class="btn btn-secondary btn-sm" onclick="refreshAllData()">🔄 Làm mới dữ liệu</button>
+          </div>
+          <div class="card-body">
+            <div class="dist-item">
+              <div class="dist-label">
+                <span>🌟 Xuất sắc / Giỏi (8.5 – 10.0)</span>
+                <span id="dist-excellent-label">0 (0%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="dist-excellent-bar" style="width: 0%; background: #059669;"></div>
+              </div>
+            </div>
+            <div class="dist-item">
+              <div class="dist-label">
+                <span>📘 Khá (7.0 – 8.4)</span>
+                <span id="dist-good-label">0 (0%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="dist-good-bar" style="width: 0%; background: #2563eb;"></div>
+              </div>
+            </div>
+            <div class="dist-item">
+              <div class="dist-label">
+                <span>📙 Trung bình (5.5 – 6.9)</span>
+                <span id="dist-avg-label">0 (0%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="dist-avg-bar" style="width: 0%; background: #d97706;"></div>
+              </div>
+            </div>
+            <div class="dist-item" style="margin-bottom: 0;">
+              <div class="dist-label">
+                <span>📕 Trung bình yếu / Kém (&lt; 5.5)</span>
+                <span id="dist-weak-label">0 (0%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="dist-weak-bar" style="width: 0%; background: #dc2626;"></div>
+              </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 0.6rem; flex-wrap: wrap;">
+              <button class="btn btn-primary btn-sm" onclick="switchTab('students')">➕ Thêm Sinh viên</button>
+              <button class="btn btn-primary btn-sm" onclick="switchTab('scores')">➕ Nhập Điểm thi</button>
+              <button class="btn btn-secondary btn-sm" onclick="window.open('/docs', '_blank')">📖 Mở Swagger API Docs</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bảng điểm mới cập nhật -->
+        <div class="card">
+          <div class="card-header">
+            <h2>🏆 Kết quả Điểm thi Gần đây trên SQL Server</h2>
+            <button class="btn btn-secondary btn-sm" onclick="switchTab('scores')">Xem tất cả →</button>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã SV</th>
+                  <th>Họ và tên</th>
+                  <th>Môn học</th>
+                  <th>Học kỳ</th>
+                  <th>Tổng kết</th>
+                  <th>Xếp loại</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-recent-scores">
+                <tr><td colspan="6" class="empty-state">Đang tải dữ liệu...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 2. TAB SINH VIÊN ==================== -->
+    <section id="tab-students" class="tab-section">
+      <div class="workspace-grid">
+        <!-- Form Sinh viên -->
+        <div class="card">
+          <div class="card-header">
+            <h2 id="student-form-title">➕ Thêm Sinh viên Mới</h2>
+            <span class="mode-indicator" id="student-mode-badge">THÊM MỚI</span>
+          </div>
+          <div class="card-body">
+            <form id="student-form" onsubmit="handleStudentSubmit(event)">
+              <input type="hidden" id="student-id" />
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="student-code">Mã sinh viên <span class="req">*</span></label>
+                  <input type="text" id="student-code" placeholder="VD: SV2024010" required />
+                </div>
+                <div class="form-group">
+                  <label for="student-class-id">Lớp học <span class="req">*</span></label>
+                  <select id="student-class-id" required>
+                    <option value="">-- Chọn lớp học --</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="student-name">Họ và tên <span class="req">*</span></label>
+                <input type="text" id="student-name" placeholder="VD: Nguyễn Văn An" required />
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="student-dob">Ngày sinh <span class="req">*</span></label>
+                  <input type="date" id="student-dob" required />
+                </div>
+                <div class="form-group">
+                  <label for="student-gender">Giới tính <span class="req">*</span></label>
+                  <select id="student-gender" required>
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                    <option value="Khác">Khác</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="student-email">Email sinh viên <span class="req">*</span></label>
+                <input type="email" id="student-email" placeholder="VD: an.nv@student.edu.vn" required />
+              </div>
+
+              <div class="form-group">
+                <label for="student-hometown">Quê quán / Địa chỉ</label>
+                <input type="text" id="student-hometown" placeholder="VD: Hà Nội" />
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="student-submit-btn">💾 Lưu Sinh viên</button>
+                <button type="button" class="btn btn-secondary" onclick="resetStudentForm()">Làm mới</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Danh sách Sinh viên -->
+        <div class="card">
+          <div class="card-header">
+            <h2>📋 Danh sách Sinh viên</h2>
+            <div class="toolbar">
+              <div class="search-box">
+                <input type="text" id="student-search" placeholder="Tìm mã SV, họ tên, email, quê quán..." oninput="loadStudents()" />
+              </div>
+              <select id="student-filter-class" onchange="loadStudents()" style="width: auto; min-width: 170px;">
+                <option value="">Tất cả lớp học</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Mã SV</th>
+                  <th>Họ và tên</th>
+                  <th>Ngày sinh</th>
+                  <th>Giới tính</th>
+                  <th>Lớp học</th>
+                  <th>Email / Quê quán</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="students-tbody">
+                <tr><td colspan="8" class="empty-state">Đang tải danh sách sinh viên...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 3. TAB LỚP HỌC ==================== -->
+    <section id="tab-classes" class="tab-section">
+      <div class="workspace-grid">
+        <!-- Form Lớp học -->
+        <div class="card">
+          <div class="card-header">
+            <h2 id="class-form-title">➕ Thêm Lớp học Mới</h2>
+            <span class="mode-indicator" id="class-mode-badge">THÊM MỚI</span>
+          </div>
+          <div class="card-body">
+            <form id="class-form" onsubmit="handleClassSubmit(event)">
+              <input type="hidden" id="class-id" />
+              <div class="form-group">
+                <label for="class-code">Mã lớp học <span class="req">*</span></label>
+                <input type="text" id="class-code" placeholder="VD: CNTT03-K18" required />
+              </div>
+
+              <div class="form-group">
+                <label for="class-name">Tên lớp học <span class="req">*</span></label>
+                <input type="text" id="class-name" placeholder="VD: Kỹ thuật phần mềm 03 - K18" required />
+              </div>
+
+              <div class="form-group">
+                <label for="class-year">Niên khóa</label>
+                <input type="text" id="class-year" value="2024-2028" placeholder="VD: 2024-2028" />
+              </div>
+
+              <div class="form-group">
+                <label for="class-teacher">Giảng viên cố vấn / Chủ nhiệm</label>
+                <input type="text" id="class-teacher" placeholder="VD: TS. Nguyễn Văn A" />
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="class-submit-btn">💾 Lưu Lớp học</button>
+                <button type="button" class="btn btn-secondary" onclick="resetClassForm()">Làm mới</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Bảng Lớp học -->
+        <div class="card">
+          <div class="card-header">
+            <h2>🏫 Danh sách Lớp học</h2>
+            <div class="toolbar">
+              <div class="search-box">
+                <input type="text" id="class-search" placeholder="Tìm mã lớp, tên lớp, GV cố vấn..." oninput="loadClasses()" />
+              </div>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Mã lớp</th>
+                  <th>Tên lớp học</th>
+                  <th>Niên khóa</th>
+                  <th>Giảng viên cố vấn</th>
+                  <th>Sĩ số</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="classes-tbody">
+                <tr><td colspan="7" class="empty-state">Đang tải danh sách lớp học...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 4. TAB MÔN HỌC ==================== -->
+    <section id="tab-subjects" class="tab-section">
+      <div class="workspace-grid">
+        <!-- Form Môn học -->
+        <div class="card">
+          <div class="card-header">
+            <h2 id="subject-form-title">➕ Thêm Môn học Mới</h2>
+            <span class="mode-indicator" id="subject-mode-badge">THÊM MỚI</span>
+          </div>
+          <div class="card-body">
+            <form id="subject-form" onsubmit="handleSubjectSubmit(event)">
+              <input type="hidden" id="subject-id" />
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="subject-code">Mã môn học <span class="req">*</span></label>
+                  <input type="text" id="subject-code" placeholder="VD: IT3060" required />
+                </div>
+                <div class="form-group">
+                  <label for="subject-credits">Số tín chỉ (1-15) <span class="req">*</span></label>
+                  <input type="number" id="subject-credits" min="1" max="15" value="3" required />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="subject-name">Tên môn học <span class="req">*</span></label>
+                <input type="text" id="subject-name" placeholder="VD: Phân tích và Thiết kế Hệ thống" required />
+              </div>
+
+              <div class="form-group">
+                <label for="subject-dept">Khoa / Bộ môn phụ trách</label>
+                <input type="text" id="subject-dept" placeholder="VD: Hệ thống thông tin" />
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="subject-submit-btn">💾 Lưu Môn học</button>
+                <button type="button" class="btn btn-secondary" onclick="resetSubjectForm()">Làm mới</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Bảng Môn học -->
+        <div class="card">
+          <div class="card-header">
+            <h2>📚 Danh sách Môn học</h2>
+            <div class="toolbar">
+              <div class="search-box">
+                <input type="text" id="subject-search" placeholder="Tìm mã môn, tên môn, bộ môn..." oninput="loadSubjects()" />
+              </div>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Mã môn</th>
+                  <th>Tên môn học</th>
+                  <th>Số tín chỉ</th>
+                  <th>Bộ môn phụ trách</th>
+                  <th>SL Điểm</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="subjects-tbody">
+                <tr><td colspan="7" class="empty-state">Đang tải danh sách môn học...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 5. TAB ĐIỂM THI ==================== -->
+    <section id="tab-scores" class="tab-section">
+      <div class="workspace-grid">
+        <!-- Form Điểm thi -->
+        <div class="card">
+          <div class="card-header">
+            <h2 id="score-form-title">➕ Nhập Điểm thi</h2>
+            <span class="mode-indicator" id="score-mode-badge">NHẬP MỚI</span>
+          </div>
+          <div class="card-body">
+            <form id="score-form" onsubmit="handleScoreSubmit(event)">
+              <input type="hidden" id="score-id" />
+
+              <div class="form-group">
+                <label for="score-student-id">Sinh viên <span class="req">*</span></label>
+                <select id="score-student-id" required>
+                  <option value="">-- Chọn sinh viên --</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="score-subject-id">Môn học <span class="req">*</span></label>
+                <select id="score-subject-id" required>
+                  <option value="">-- Chọn môn học --</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="score-semester">Học kỳ <span class="req">*</span></label>
+                <input type="text" id="score-semester" value="HK1-2026" placeholder="VD: HK1-2026" required />
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="score-process">Điểm quá trình (40%) <span class="req">*</span></label>
+                  <input type="number" id="score-process" step="0.1" min="0" max="10" placeholder="0.0 - 10.0" oninput="updateScorePreview()" required />
+                </div>
+                <div class="form-group">
+                  <label for="score-exam">Điểm thi (60%) <span class="req">*</span></label>
+                  <input type="number" id="score-exam" step="0.1" min="0" max="10" placeholder="0.0 - 10.0" oninput="updateScorePreview()" required />
+                </div>
+              </div>
+
+              <div class="score-preview">
+                <span>Điểm tổng kết dự kiến (40% QT + 60% Thi):</span>
+                <strong id="score-preview-val">-- / 10.0</strong>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="score-submit-btn">💾 Lưu Điểm thi</button>
+                <button type="button" class="btn btn-secondary" onclick="resetScoreForm()">Làm mới</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Bảng Điểm thi -->
+        <div class="card">
+          <div class="card-header">
+            <h2>📝 Bảng Điểm thi Sinh viên</h2>
+            <div class="toolbar">
+              <div class="search-box">
+                <input type="text" id="score-search" placeholder="Tìm mã SV, tên SV, môn học..." oninput="loadScores()" />
+              </div>
+              <select id="score-filter-student" onchange="loadScores()" style="width: auto; max-width: 190px;">
+                <option value="">Tất cả sinh viên</option>
+              </select>
+              <select id="score-filter-subject" onchange="loadScores()" style="width: auto; max-width: 190px;">
+                <option value="">Tất cả môn học</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Sinh viên</th>
+                  <th>Môn học</th>
+                  <th>Học kỳ</th>
+                  <th>Điểm QT</th>
+                  <th>Điểm Thi</th>
+                  <th>Tổng kết</th>
+                  <th>Xếp loại</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="scores-tbody">
+                <tr><td colspan="9" class="empty-state">Đang tải danh sách điểm thi...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container"></div>
+
+  <footer>
+    Hệ thống Quản lý Sinh viên & Điểm thi • Backend FastAPI + SQL Server + Pydantic Validation • Phục vụ tại <code>/</code> bằng StaticFiles
+  </footer>
+
+  <!-- JAVASCRIPT FETCH LOGIC -->
+  <script>
+    // Bộ nhớ đệm cho các danh mục phục vụ dropdown và chỉnh sửa nhanh
+    let cachedClasses = [];
+    let cachedStudents = [];
+    let cachedSubjects = [];
+    let cachedScores = [];
+
+    // =========================================================================
+    // TIỆN ÍCH HIỂN THỊ THÔNG BÁO (TOAST) & XỬ LÝ LỖI API
+    // =========================================================================
+    function showToast(title, message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `
+        <div class="toast-content">
+          <h4>${escapeHtml(title)}</h4>
+          <p>${escapeHtml(message)}</p>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        if (toast.parentElement) toast.remove();
+      }, 4500);
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    async function apiRequest(url, options = {}) {
+      const defaultHeaders = { 'Content-Type': 'application/json' };
+      const config = {
+        ...options,
+        headers: { ...defaultHeaders, ...(options.headers || {}) },
+      };
+
+      const response = await fetch(url, config);
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (_) {
+        data = null;
+      }
+
+      if (!response.ok) {
+        let errorMsg = `Lỗi HTTP ${response.status}`;
+        if (data && data.detail) {
+          if (typeof data.detail === 'string') {
+            errorMsg = data.detail;
+          } else if (Array.isArray(data.detail)) {
+            errorMsg = data.detail
+              .map(err => `${err.loc ? err.loc.slice(1).join('.') : 'Trường'}: ${err.msg}`)
+              .join('; ');
+          }
+        }
+        throw new Error(errorMsg);
+      }
+      return data;
+    }
+
+    // =========================================================================
+    // CHUYỂN ĐỔI TAB GIAO DIỆN
+    // =========================================================================
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+
+      const targetSec = document.getElementById(`tab-${tabName}`);
+      const targetBtn = document.getElementById(`tab-btn-${tabName}`);
+      if (targetSec) targetSec.classList.add('active');
+      if (targetBtn) targetBtn.classList.add('active');
+    }
+
+    // =========================================================================
+    // 1. TẢI DỮ LIỆU DASHBOARD & ĐỒNG BỘ TOÀN HỆ THỐNG
+    // =========================================================================
+    async function loadDashboardStats() {
+      try {
+        const stats = await apiRequest('/api/stats');
+        document.getElementById('kpi-students').textContent = stats.total_students;
+        document.getElementById('kpi-classes').textContent = stats.total_classes;
+        document.getElementById('kpi-subjects').textContent = stats.total_subjects;
+        document.getElementById('kpi-scores').textContent = stats.total_scores;
+        document.getElementById('kpi-avg-score').textContent = stats.average_score.toFixed(2);
+        document.getElementById('kpi-pass-rate').textContent = `${stats.pass_rate}%`;
+
+        document.getElementById('nav-count-students').textContent = stats.total_students;
+        document.getElementById('nav-count-classes').textContent = stats.total_classes;
+        document.getElementById('nav-count-subjects').textContent = stats.total_subjects;
+        document.getElementById('nav-count-scores').textContent = stats.total_scores;
+
+        if (stats.database_info) {
+          document.getElementById('db-status-text').textContent =
+            `SQL Server: ${stats.database_info.server} • DB: ${stats.database_info.database}`;
+        }
+
+        const total = stats.total_scores || 1;
+        const dist = stats.distribution || { excellent: 0, good: 0, average: 0, weak: 0 };
+
+        const setBar = (key, count) => {
+          const pct = stats.total_scores > 0 ? Math.round((count / total) * 100) : 0;
+          document.getElementById(`dist-${key}-label`).textContent = `${count} bản ghi (${pct}%)`;
+          document.getElementById(`dist-${key}-bar`).style.width = `${pct}%`;
+        };
+
+        setBar('excellent', dist.excellent);
+        setBar('good', dist.good);
+        setBar('avg', dist.average);
+        setBar('weak', dist.weak);
+      } catch (err) {
+        document.getElementById('db-status-text').textContent = 'Lỗi kết nối SQL Server';
+        showToast('Lỗi tải thống kê', err.message, 'error');
+      }
+    }
+
+    // =========================================================================
+    // 2. QUẢN LÝ LỚP HỌC (CRUD)
+    // =========================================================================
+    async function loadClasses() {
+      const search = document.getElementById('class-search').value.trim();
+      const url = search ? `/api/classes?search=${encodeURIComponent(search)}` : '/api/classes';
+      try {
+        const classes = await apiRequest(url);
+        if (!search) {
+          cachedClasses = classes;
+          populateClassDropdowns();
+        }
+        const tbody = document.getElementById('classes-tbody');
+        if (classes.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Không tìm thấy lớp học nào.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = classes.map(c => `
+          <tr>
+            <td>#${c.id}</td>
+            <td><span class="code-badge">${escapeHtml(c.class_code)}</span></td>
+            <td><strong>${escapeHtml(c.class_name)}</strong></td>
+            <td>${escapeHtml(c.academic_year || '—')}</td>
+            <td>${escapeHtml(c.homeroom_teacher || '—')}</td>
+            <td><span class="badge badge-info">${c.student_count} SV</span></td>
+            <td>
+              <div class="action-group">
+                <button class="btn btn-sm btn-edit" onclick="startEditClass(${c.id})">✏️ Sửa</button>
+                <button class="btn btn-sm btn-delete" onclick="deleteClass(${c.id}, '${escapeHtml(c.class_code)}')">🗑️ Xóa</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        showToast('Lỗi tải lớp học', err.message, 'error');
+      }
+    }
+
+    function populateClassDropdowns() {
+      const studentSelect = document.getElementById('student-class-id');
+      const filterSelect = document.getElementById('student-filter-class');
+      const currentVal = studentSelect.value;
+      const currentFilter = filterSelect.value;
+
+      studentSelect.innerHTML = `<option value="">-- Chọn lớp học --</option>` +
+        cachedClasses.map(c => `<option value="${c.id}">${escapeHtml(c.class_code)} — ${escapeHtml(c.class_name)}</option>`).join('');
+
+      filterSelect.innerHTML = `<option value="">Tất cả lớp học</option>` +
+        cachedClasses.map(c => `<option value="${c.id}">${escapeHtml(c.class_code)} (${c.student_count} SV)</option>`).join('');
+
+      if (currentVal) studentSelect.value = currentVal;
+      if (currentFilter) filterSelect.value = currentFilter;
+    }
+
+    function startEditClass(id) {
+      const cls = cachedClasses.find(c => c.id === id);
+      if (!cls) return;
+      document.getElementById('class-id').value = cls.id;
+      document.getElementById('class-code').value = cls.class_code;
+      document.getElementById('class-name').value = cls.class_name;
+      document.getElementById('class-year').value = cls.academic_year || '';
+      document.getElementById('class-teacher').value = cls.homeroom_teacher || '';
+
+      document.getElementById('class-form-title').textContent = `✏️ Cập nhật Lớp #${cls.id}`;
+      const badge = document.getElementById('class-mode-badge');
+      badge.textContent = 'CHỈNH SỬA';
+      badge.classList.add('editing');
+      document.getElementById('class-submit-btn').textContent = '💾 Cập nhật Lớp học';
+    }
+
+    function resetClassForm() {
+      document.getElementById('class-form').reset();
+      document.getElementById('class-id').value = '';
+      document.getElementById('class-year').value = '2024-2028';
+      document.getElementById('class-form-title').textContent = '➕ Thêm Lớp học Mới';
+      const badge = document.getElementById('class-mode-badge');
+      badge.textContent = 'THÊM MỚI';
+      badge.classList.remove('editing');
+      document.getElementById('class-submit-btn').textContent = '💾 Lưu Lớp học';
+    }
+
+    async function handleClassSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('class-id').value;
+      const payload = {
+        class_code: document.getElementById('class-code').value.trim(),
+        class_name: document.getElementById('class-name').value.trim(),
+        academic_year: document.getElementById('class-year').value.trim() || null,
+        homeroom_teacher: document.getElementById('class-teacher').value.trim() || null,
+      };
+
+      try {
+        if (id) {
+          await apiRequest(`/api/classes/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(payload),
+          });
+          showToast('Cập nhật thành công', `Đã cập nhật lớp ${payload.class_code}.`, 'success');
+        } else {
+          await apiRequest('/api/classes', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+          showToast('Thêm mới thành công', `Đã thêm lớp học ${payload.class_code} vào SQL Server.`, 'success');
+        }
+        resetClassForm();
+        await refreshAllData();
+      } catch (err) {
+        showToast('Không thể lưu lớp học', err.message, 'error');
+      }
+    }
+
+    async function deleteClass(id, code) {
+      if (!confirm(`Bạn có chắc chắn muốn xóa lớp học "${code}" (ID=${id}) không?`)) return;
+      try {
+        const res = await apiRequest(`/api/classes/${id}`, { method: 'DELETE' });
+        showToast('Đã xóa lớp học', res.message, 'success');
+        if (document.getElementById('class-id').value == id) resetClassForm();
+        await refreshAllData();
+      } catch (err) {
+        showToast('Không thể xóa lớp học', err.message, 'error');
+      }
+    }
+
+    // =========================================================================
+    // 3. QUẢN LÝ SINH VIÊN (CRUD + TÌM KIẾM + LỌC LỚP)
+    // =========================================================================
+    async function loadStudents() {
+      const search = document.getElementById('student-search').value.trim();
+      const classId = document.getElementById('student-filter-class').value;
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (classId) params.append('class_id', classId);
+      const queryStr = params.toString() ? `?${params.toString()}` : '';
+
+      try {
+        const students = await apiRequest(`/api/students${queryStr}`);
+        if (!search && !classId) {
+          cachedStudents = students;
+          populateStudentDropdowns();
+        }
+        const tbody = document.getElementById('students-tbody');
+        if (students.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Không tìm thấy sinh viên nào phù hợp.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = students.map(st => `
+          <tr>
+            <td>#${st.id}</td>
+            <td><span class="code-badge">${escapeHtml(st.student_code)}</span></td>
+            <td><strong>${escapeHtml(st.full_name)}</strong></td>
+            <td>${escapeHtml(st.date_of_birth)}</td>
+            <td>${escapeHtml(st.gender)}</td>
+            <td><span class="badge badge-info">${escapeHtml(st.class_code || '—')}</span></td>
+            <td>
+              <div>${escapeHtml(st.email)}</div>
+              <small style="color: var(--text-muted);">${escapeHtml(st.hometown || '')}</small>
+            </td>
+            <td>
+              <div class="action-group">
+                <button class="btn btn-sm btn-edit" onclick="startEditStudent(${st.id})">✏️ Sửa</button>
+                <button class="btn btn-sm btn-delete" onclick="deleteStudent(${st.id}, '${escapeHtml(st.full_name)}')">🗑️ Xóa</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        showToast('Lỗi tải danh sách sinh viên', err.message, 'error');
+      }
+    }
+
+    function populateStudentDropdowns() {
+      const scoreSelect = document.getElementById('score-student-id');
+      const filterSelect = document.getElementById('score-filter-student');
+      const curVal = scoreSelect.value;
+      const curFilter = filterSelect.value;
+
+      scoreSelect.innerHTML = `<option value="">-- Chọn sinh viên --</option>` +
+        cachedStudents.map(s => `<option value="${s.id}">${escapeHtml(s.student_code)} — ${escapeHtml(s.full_name)} (${escapeHtml(s.class_code || '')})</option>`).join('');
+
+      filterSelect.innerHTML = `<option value="">Tất cả sinh viên</option>` +
+        cachedStudents.map(s => `<option value="${s.id}">${escapeHtml(s.student_code)} - ${escapeHtml(s.full_name)}</option>`).join('');
+
+      if (curVal) scoreSelect.value = curVal;
+      if (curFilter) filterSelect.value = curFilter;
+    }
+
+    async function startEditStudent(id) {
+      try {
+        const st = await apiRequest(`/api/students/${id}`);
+        document.getElementById('student-id').value = st.id;
+        document.getElementById('student-code').value = st.student_code;
+        document.getElementById('student-name').value = st.full_name;
+        document.getElementById('student-dob').value = st.date_of_birth;
+        document.getElementById('student-gender').value = st.gender;
+        document.getElementById('student-email').value = st.email;
+        document.getElementById('student-hometown').value = st.hometown || '';
+        document.getElementById('student-class-id').value = st.class_id;
+
+        document.getElementById('student-form-title').textContent = `✏️ Cập nhật SV #${st.id}`;
+        const badge = document.getElementById('student-mode-badge');
+        badge.textContent = 'CHỈNH SỬA';
+        badge.classList.add('editing');
+        document.getElementById('student-submit-btn').textContent = '💾 Cập nhật Sinh viên';
+      } catch (err) {
+        showToast('Không tìm thấy sinh viên', err.message, 'error');
+      }
+    }
+
+    function resetStudentForm() {
+      document.getElementById('student-form').reset();
+      document.getElementById('student-id').value = '';
+      document.getElementById('student-form-title').textContent = '➕ Thêm Sinh viên Mới';
+      const badge = document.getElementById('student-mode-badge');
+      badge.textContent = 'THÊM MỚI';
+      badge.classList.remove('editing');
+      document.getElementById('student-submit-btn').textContent = '💾 Lưu Sinh viên';
+    }
+
+    async function handleStudentSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('student-id').value;
+      const payload = {
+        student_code: document.getElementById('student-code').value.trim(),
+        full_name: document.getElementById('student-name').value.trim(),
+        date_of_birth: document.getElementById('student-dob').value,
+        gender: document.getElementById('student-gender').value,
+        email: document.getElementById('student-email').value.trim(),
+        hometown: document.getElementById('student-hometown').value.trim() || null,
+        class_id: parseInt(document.getElementById('student-class-id').value, 10),
+      };
+
+      try {
+        if (id) {
+          await apiRequest(`/api/students/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(payload),
+          });
+          showToast('Cập nhật thành công', `Đã cập nhật sinh viên ${payload.full_name}.`, 'success');
+        } else {
+          await apiRequest('/api/students', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+          showToast('Thêm sinh viên thành công', `Đã thêm ${payload.full_name} (${payload.student_code}).`, 'success');
+        }
+        resetStudentForm();
+        await refreshAllData();
+      } catch (err) {
+        showToast('Lỗi dữ liệu sinh viên', err.message, 'error');
+      }
+    }
+
+    async function deleteStudent(id, name) {
+      if (!confirm(`Bạn có chắc chắn muốn xóa sinh viên "${name}" (ID=${id}) không?`)) return;
+      try {
+        const res = await apiRequest(`/api/students/${id}`, { method: 'DELETE' });
+        showToast('Đã xóa sinh viên', res.message, 'success');
+        if (document.getElementById('student-id').value == id) resetStudentForm();
+        await refreshAllData();
+      } catch (err) {
+        showToast('Không thể xóa sinh viên', err.message, 'error');
+      }
+    }
+
+    // =========================================================================
+    // 4. QUẢN LÝ MÔN HỌC (CRUD)
+    // =========================================================================
+    async function loadSubjects() {
+      const search = document.getElementById('subject-search').value.trim();
+      const url = search ? `/api/subjects?search=${encodeURIComponent(search)}` : '/api/subjects';
+      try {
+        const subjects = await apiRequest(url);
+        if (!search) {
+          cachedSubjects = subjects;
+          populateSubjectDropdowns();
+        }
+        const tbody = document.getElementById('subjects-tbody');
+        if (subjects.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Không tìm thấy môn học nào.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = subjects.map(s => `
+          <tr>
+            <td>#${s.id}</td>
+            <td><span class="code-badge">${escapeHtml(s.subject_code)}</span></td>
+            <td><strong>${escapeHtml(s.subject_name)}</strong></td>
+            <td><span class="badge badge-info">${s.credits} TC</span></td>
+            <td>${escapeHtml(s.department || '—')}</td>
+            <td>${s.score_count} bản ghi</td>
+            <td>
+              <div class="action-group">
+                <button class="btn btn-sm btn-edit" onclick="startEditSubject(${s.id})">✏️ Sửa</button>
+                <button class="btn btn-sm btn-delete" onclick="deleteSubject(${s.id}, '${escapeHtml(s.subject_code)}')">🗑️ Xóa</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        showToast('Lỗi tải môn học', err.message, 'error');
+      }
+    }
+
+    function populateSubjectDropdowns() {
+      const scoreSelect = document.getElementById('score-subject-id');
+      const filterSelect = document.getElementById('score-filter-subject');
+      const curVal = scoreSelect.value;
+      const curFilter = filterSelect.value;
+
+      scoreSelect.innerHTML = `<option value="">-- Chọn môn học --</option>` +
+        cachedSubjects.map(s => `<option value="${s.id}">${escapeHtml(s.subject_code)} — ${escapeHtml(s.subject_name)} (${s.credits} TC)</option>`).join('');
+
+      filterSelect.innerHTML = `<option value="">Tất cả môn học</option>` +
+        cachedSubjects.map(s => `<option value="${s.id}">${escapeHtml(s.subject_code)} - ${escapeHtml(s.subject_name)}</option>`).join('');
+
+      if (curVal) scoreSelect.value = curVal;
+      if (curFilter) filterSelect.value = curFilter;
+    }
+
+    function startEditSubject(id) {
+      const sub = cachedSubjects.find(s => s.id === id);
+      if (!sub) return;
+      document.getElementById('subject-id').value = sub.id;
+      document.getElementById('subject-code').value = sub.subject_code;
+      document.getElementById('subject-name').value = sub.subject_name;
+      document.getElementById('subject-credits').value = sub.credits;
+      document.getElementById('subject-dept').value = sub.department || '';
+
+      document.getElementById('subject-form-title').textContent = `✏️ Cập nhật Môn #${sub.id}`;
+      const badge = document.getElementById('subject-mode-badge');
+      badge.textContent = 'CHỈNH SỬA';
+      badge.classList.add('editing');
+      document.getElementById('subject-submit-btn').textContent = '💾 Cập nhật Môn học';
+    }
+
+    function resetSubjectForm() {
+      document.getElementById('subject-form').reset();
+      document.getElementById('subject-id').value = '';
+      document.getElementById('subject-credits').value = '3';
+      document.getElementById('subject-form-title').textContent = '➕ Thêm Môn học Mới';
+      const badge = document.getElementById('subject-mode-badge');
+      badge.textContent = 'THÊM MỚI';
+      badge.classList.remove('editing');
+      document.getElementById('subject-submit-btn').textContent = '💾 Lưu Môn học';
+    }
+
+    async function handleSubjectSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('subject-id').value;
+      const payload = {
+        subject_code: document.getElementById('subject-code').value.trim(),
+        subject_name: document.getElementById('subject-name').value.trim(),
+        credits: parseInt(document.getElementById('subject-credits').value, 10),
+        department: document.getElementById('subject-dept').value.trim() || null,
+      };
+
+      try {
+        if (id) {
+          await apiRequest(`/api/subjects/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(payload),
+          });
+          showToast('Cập nhật thành công', `Đã cập nhật môn ${payload.subject_code}.`, 'success');
+        } else {
+          await apiRequest('/api/subjects', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+          showToast('Thêm môn học thành công', `Đã thêm môn ${payload.subject_name}.`, 'success');
+        }
+        resetSubjectForm();
+        await refreshAllData();
+      } catch (err) {
+        showToast('Không thể lưu môn học', err.message, 'error');
+      }
+    }
+
+    async function deleteSubject(id, code) {
+      if (!confirm(`Bạn có chắc chắn muốn xóa môn học "${code}" (ID=${id}) không?`)) return;
+      try {
+        const res = await apiRequest(`/api/subjects/${id}`, { method: 'DELETE' });
+        showToast('Đã xóa môn học', res.message, 'success');
+        if (document.getElementById('subject-id').value == id) resetSubjectForm();
+        await refreshAllData();
+      } catch (err) {
+        showToast('Không thể xóa môn học', err.message, 'error');
+      }
+    }
+
+    // =========================================================================
+    // 5. QUẢN LÝ ĐIỂM THI (CRUD + KIỂM TRA HỢP LỆ ĐIỂM SỐ)
+    // =========================================================================
+    function getGradeBadgeClass(finalScore) {
+      if (finalScore >= 8.5) return 'badge-success';
+      if (finalScore >= 7.0) return 'badge-info';
+      if (finalScore >= 5.5) return 'badge-warning';
+      return 'badge-danger';
+    }
+
+    function updateScorePreview() {
+      const procVal = parseFloat(document.getElementById('score-process').value);
+      const examVal = parseFloat(document.getElementById('score-exam').value);
+      const previewEl = document.getElementById('score-preview-val');
+
+      if (isNaN(procVal) || isNaN(examVal)) {
+        previewEl.textContent = '-- / 10.0';
+        return;
+      }
+      if (procVal < 0 || procVal > 10 || examVal < 0 || examVal > 10) {
+        previewEl.textContent = '⚠️ Điểm phải từ 0.0 đến 10.0';
+        previewEl.style.color = '#dc2626';
+        return;
+      }
+      const finalScore = (procVal * 0.4 + examVal * 0.6).toFixed(2);
+      previewEl.style.color = '#0369a1';
+      previewEl.textContent = `${finalScore} / 10.0`;
+    }
+
+    async function loadScores() {
+      const search = document.getElementById('score-search').value.trim();
+      const studentId = document.getElementById('score-filter-student').value;
+      const subjectId = document.getElementById('score-filter-subject').value;
+
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (studentId) params.append('student_id', studentId);
+      if (subjectId) params.append('subject_id', subjectId);
+      const queryStr = params.toString() ? `?${params.toString()}` : '';
+
+      try {
+        const scores = await apiRequest(`/api/scores${queryStr}`);
+        if (!search && !studentId && !subjectId) {
+          cachedScores = scores;
+          renderDashboardRecentScores(scores);
+        }
+        const tbody = document.getElementById('scores-tbody');
+        if (scores.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" class="empty-state">Không tìm thấy bản ghi điểm thi nào.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = scores.map(sc => `
+          <tr>
+            <td>#${sc.id}</td>
+            <td>
+              <div><strong>${escapeHtml(sc.student_name)}</strong></div>
+              <small style="color: var(--text-muted);">${escapeHtml(sc.student_code)} • ${escapeHtml(sc.class_code || '')}</small>
+            </td>
+            <td>
+              <div><strong>${escapeHtml(sc.subject_name)}</strong></div>
+              <small style="color: var(--text-muted);">${escapeHtml(sc.subject_code)} (${sc.credits} TC)</small>
+            </td>
+            <td><span class="code-badge">${escapeHtml(sc.semester)}</span></td>
+            <td>${sc.process_score.toFixed(1)}</td>
+            <td>${sc.exam_score.toFixed(1)}</td>
+            <td><strong>${sc.final_score.toFixed(2)}</strong></td>
+            <td><span class="badge ${getGradeBadgeClass(sc.final_score)}">${escapeHtml(sc.grade_rank)}</span></td>
+            <td>
+              <div class="action-group">
+                <button class="btn btn-sm btn-edit" onclick="startEditScore(${sc.id})">✏️ Sửa</button>
+                <button class="btn btn-sm btn-delete" onclick="deleteScore(${sc.id}, '${escapeHtml(sc.student_name)}', '${escapeHtml(sc.subject_name)}')">🗑️ Xóa</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        showToast('Lỗi tải bảng điểm', err.message, 'error');
+      }
+    }
+
+    function renderDashboardRecentScores(scores) {
+      const tbody = document.getElementById('dashboard-recent-scores');
+      if (!scores || scores.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Chưa có dữ liệu điểm thi.</td></tr>`;
+        return;
+      }
+      const recent = [...scores].reverse().slice(0, 6);
+      tbody.innerHTML = recent.map(sc => `
+        <tr>
+          <td><span class="code-badge">${escapeHtml(sc.student_code)}</span></td>
+          <td><strong>${escapeHtml(sc.student_name)}</strong></td>
+          <td>${escapeHtml(sc.subject_name)}</td>
+          <td>${escapeHtml(sc.semester)}</td>
+          <td><strong>${sc.final_score.toFixed(2)}</strong></td>
+          <td><span class="badge ${getGradeBadgeClass(sc.final_score)}">${escapeHtml(sc.grade_rank)}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    async function startEditScore(id) {
+      try {
+        const sc = await apiRequest(`/api/scores/${id}`);
+        document.getElementById('score-id').value = sc.id;
+        document.getElementById('score-student-id').value = sc.student_id;
+        document.getElementById('score-subject-id').value = sc.subject_id;
+        document.getElementById('score-semester').value = sc.semester;
+        document.getElementById('score-process').value = sc.process_score;
+        document.getElementById('score-exam').value = sc.exam_score;
+        updateScorePreview();
+
+        document.getElementById('score-form-title').textContent = `✏️ Cập nhật Điểm #${sc.id}`;
+        const badge = document.getElementById('score-mode-badge');
+        badge.textContent = 'CHỈNH SỬA';
+        badge.classList.add('editing');
+        document.getElementById('score-submit-btn').textContent = '💾 Cập nhật Điểm thi';
+      } catch (err) {
+        showToast('Không tìm thấy bản ghi điểm', err.message, 'error');
+      }
+    }
+
+    function resetScoreForm() {
+      document.getElementById('score-form').reset();
+      document.getElementById('score-id').value = '';
+      document.getElementById('score-semester').value = 'HK1-2026';
+      document.getElementById('score-preview-val').textContent = '-- / 10.0';
+      document.getElementById('score-form-title').textContent = '➕ Nhập Điểm thi';
+      const badge = document.getElementById('score-mode-badge');
+      badge.textContent = 'NHẬP MỚI';
+      badge.classList.remove('editing');
+      document.getElementById('score-submit-btn').textContent = '💾 Lưu Điểm thi';
+    }
+
+    async function handleScoreSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('score-id').value;
+      const procScore = parseFloat(document.getElementById('score-process').value);
+      const examScore = parseFloat(document.getElementById('score-exam').value);
+
+      if (isNaN(procScore) || procScore < 0 || procScore > 10 || isNaN(examScore) || examScore < 0 || examScore > 10) {
+        showToast('Điểm số không hợp lệ', 'Điểm quá trình và điểm thi phải nằm trong khoảng từ 0.0 đến 10.0.', 'warning');
+        return;
+      }
+
+      const payload = {
+        student_id: parseInt(document.getElementById('score-student-id').value, 10),
+        subject_id: parseInt(document.getElementById('score-subject-id').value, 10),
+        semester: document.getElementById('score-semester').value.trim(),
+        process_score: procScore,
+        exam_score: examScore,
+      };
+
+      try {
+        if (id) {
+          await apiRequest(`/api/scores/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(payload),
+          });
+          showToast('Cập nhật điểm thành công', 'Đã tính lại điểm tổng kết và lưu vào SQL Server.', 'success');
+        } else {
+          await apiRequest('/api/scores', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+          showToast('Nhập điểm thành công', 'Đã lưu bản ghi điểm thi mới vào SQL Server.', 'success');
+        }
+        resetScoreForm();
+        await refreshAllData();
+      } catch (err) {
+        showToast('Không thể lưu điểm thi', err.message, 'error');
+      }
+    }
+
+    async function deleteScore(id, studentName, subjectName) {
+      if (!confirm(`Xác nhận xóa điểm môn "${subjectName}" của sinh viên "${studentName}" (ID=${id})?`)) return;
+      try {
+        const res = await apiRequest(`/api/scores/${id}`, { method: 'DELETE' });
+        showToast('Đã xóa bản ghi điểm', res.message, 'success');
+        if (document.getElementById('score-id').value == id) resetScoreForm();
+        await refreshAllData();
+      } catch (err) {
+        showToast('Không thể xóa điểm thi', err.message, 'error');
+      }
+    }
+
+    // =========================================================================
+    // KHỞI CHẠY ỨNG DỤNG
+    // =========================================================================
+    async function refreshAllData() {
+      await Promise.all([
+        loadClasses(),
+        loadSubjects(),
+        loadStudents(),
+        loadScores(),
+        loadDashboardStats(),
+      ]);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      refreshAllData();
+    });
+  </script>
+</body>
+</html>

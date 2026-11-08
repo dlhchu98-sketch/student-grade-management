@@ -1145,6 +1145,240 @@
     let cachedSubjects = [];
     let cachedScores = [];
 
+    // Hỗ trợ kết nối tới FastAPI local (http://127.0.0.1:8000) ngay cả khi mở từ link GitHub Pages
+    const IS_GITHUB_PAGES = window.location.hostname.endsWith('github.io');
+    const API_BASE = IS_GITHUB_PAGES ? 'http://127.0.0.1:8000' : '';
+    let useCloudFallback = false;
+
+    // Dữ liệu dự phòng chỉ kích hoạt khi mở link GitHub Pages trên thiết bị không chạy SQL Server local
+    const fallbackDB = {
+      classes: [
+        { id: 1, class_code: 'CNTT01-K18', class_name: 'Công nghệ phần mềm 01 - K18', academic_year: '2024-2028', homeroom_teacher: 'TS. Nguyễn Văn Minh' },
+        { id: 2, class_code: 'CNTT02-K18', class_name: 'Hệ thống thông tin 02 - K18', academic_year: '2024-2028', homeroom_teacher: 'ThS. Trần Thị Thu Hà' },
+        { id: 3, class_code: 'KHDL01-K18', class_name: 'Khoa học dữ liệu & AI - K18', academic_year: '2024-2028', homeroom_teacher: 'PGS.TS. Lê Hoàng Nam' },
+        { id: 4, class_code: 'ATTT01-K18', class_name: 'An toàn thông tin 01 - K18', academic_year: '2024-2028', homeroom_teacher: 'TS. Phạm Quốc Bảo' }
+      ],
+      subjects: [
+        { id: 1, subject_code: 'IT3010', subject_name: 'Hệ quản trị Cơ sở dữ liệu SQL Server', credits: 3, department: 'Hệ thống thông tin' },
+        { id: 2, subject_code: 'IT3020', subject_name: 'Phát triển Ứng dụng Web với FastAPI', credits: 3, department: 'Công nghệ phần mềm' },
+        { id: 3, subject_code: 'IT3030', subject_name: 'Cấu trúc dữ liệu và Giải thuật', credits: 4, department: 'Khoa học máy tính' },
+        { id: 4, subject_code: 'IT3040', subject_name: 'Trí tuệ nhân tạo & Học máy', credits: 3, department: 'Khoa học dữ liệu' },
+        { id: 5, subject_code: 'IT3050', subject_name: 'Mạng máy tính và Bảo mật', credits: 3, department: 'An toàn thông tin' }
+      ],
+      students: [
+        { id: 1, student_code: 'SV2024001', full_name: 'Nguyễn Minh Quân', date_of_birth: '2005-03-15', gender: 'Nam', email: 'quan.nm24001@student.edu.vn', hometown: 'Hà Nội', class_id: 1 },
+        { id: 2, student_code: 'SV2024002', full_name: 'Trần Ngọc Ánh', date_of_birth: '2005-07-22', gender: 'Nữ', email: 'anh.tn24002@student.edu.vn', hometown: 'Hải Phòng', class_id: 1 },
+        { id: 3, student_code: 'SV2024003', full_name: 'Lê Hoàng Phúc', date_of_birth: '2005-11-08', gender: 'Nam', email: 'phuc.lh24003@student.edu.vn', hometown: 'Đà Nẵng', class_id: 2 },
+        { id: 4, student_code: 'SV2024004', full_name: 'Phạm Khánh Linh', date_of_birth: '2005-01-30', gender: 'Nữ', email: 'linh.pk24004@student.edu.vn', hometown: 'Nam Định', class_id: 2 },
+        { id: 5, student_code: 'SV2024005', full_name: 'Hoàng Đức Tuấn', date_of_birth: '2005-05-19', gender: 'Nam', email: 'tuan.hd24005@student.edu.vn', hometown: 'Nghệ An', class_id: 3 },
+        { id: 6, student_code: 'SV2024006', full_name: 'Vũ Phương Thảo', date_of_birth: '2005-09-12', gender: 'Nữ', email: 'thao.vp24006@student.edu.vn', hometown: 'Quảng Ninh', class_id: 4 }
+      ],
+      scores: [
+        { id: 1, student_id: 1, subject_id: 1, semester: 'HK1-2026', process_score: 9.0, exam_score: 8.5, final_score: 8.7 },
+        { id: 2, student_id: 1, subject_id: 2, semester: 'HK1-2026', process_score: 8.5, exam_score: 9.0, final_score: 8.8 },
+        { id: 3, student_id: 2, subject_id: 1, semester: 'HK1-2026', process_score: 8.0, exam_score: 7.5, final_score: 7.7 },
+        { id: 4, student_id: 2, subject_id: 3, semester: 'HK1-2026', process_score: 7.5, exam_score: 8.0, final_score: 7.8 },
+        { id: 5, student_id: 3, subject_id: 1, semester: 'HK1-2026', process_score: 6.5, exam_score: 7.0, final_score: 6.8 },
+        { id: 6, student_id: 4, subject_id: 2, semester: 'HK1-2026', process_score: 9.5, exam_score: 9.0, final_score: 9.2 },
+        { id: 7, student_id: 5, subject_id: 4, semester: 'HK1-2026', process_score: 8.0, exam_score: 8.5, final_score: 8.3 },
+        { id: 8, student_id: 6, subject_id: 5, semester: 'HK1-2026', process_score: 5.5, exam_score: 6.0, final_score: 5.8 }
+      ]
+    };
+
+    function classifyRankLocal(score) {
+      if (score >= 8.5) return 'Giỏi (A)';
+      if (score >= 7.0) return 'Khá (B)';
+      if (score >= 5.5) return 'Trung bình (C)';
+      if (score >= 4.0) return 'Trung bình yếu (D)';
+      return 'Kém / Trượt (F)';
+    }
+
+    function handleFallbackRequest(url, options = {}) {
+      const method = (options.method || 'GET').toUpperCase();
+      const body = options.body ? JSON.parse(options.body) : {};
+      const parsedUrl = new URL(url, window.location.origin);
+      const path = parsedUrl.pathname;
+      const search = (parsedUrl.searchParams.get('search') || '').toLowerCase();
+
+      if (path === '/api/stats') {
+        const totalScores = fallbackDB.scores.length;
+        const avg = totalScores ? +(fallbackDB.scores.reduce((s, r) => s + r.final_score, 0) / totalScores).toFixed(2) : 0;
+        const passed = fallbackDB.scores.filter(r => r.final_score >= 4.0).length;
+        return {
+          total_classes: fallbackDB.classes.length,
+          total_students: fallbackDB.students.length,
+          total_subjects: fallbackDB.subjects.length,
+          total_scores: totalScores,
+          average_score: avg,
+          pass_rate: totalScores ? +((passed / totalScores) * 100).toFixed(1) : 0,
+          distribution: {
+            excellent: fallbackDB.scores.filter(r => r.final_score >= 8.5).length,
+            good: fallbackDB.scores.filter(r => r.final_score >= 7.0 && r.final_score < 8.5).length,
+            average: fallbackDB.scores.filter(r => r.final_score >= 5.5 && r.final_score < 7.0).length,
+            weak: fallbackDB.scores.filter(r => r.final_score < 5.5).length
+          },
+          database_info: { server: 'GitHub Pages Static Mode', database: 'BrowserSyncedDB' }
+        };
+      }
+
+      if (path.startsWith('/api/classes')) {
+        const idMatch = path.match(/^\/api\/classes\/(\d+)$/);
+        if (method === 'GET' && !idMatch) {
+          return fallbackDB.classes
+            .filter(c => !search || c.class_code.toLowerCase().includes(search) || c.class_name.toLowerCase().includes(search))
+            .map(c => ({ ...c, student_count: fallbackDB.students.filter(s => s.class_id === c.id).length }));
+        }
+        if (method === 'POST') {
+          const code = (body.class_code || '').toUpperCase();
+          if (fallbackDB.classes.some(c => c.class_code === code)) throw new Error(`Mã lớp học '${code}' đã tồn tại`);
+          const newItem = { id: Date.now(), class_code: code, class_name: body.class_name, academic_year: body.academic_year, homeroom_teacher: body.homeroom_teacher, student_count: 0 };
+          fallbackDB.classes.push(newItem);
+          return newItem;
+        }
+        if (idMatch) {
+          const id = +idMatch[1];
+          const idx = fallbackDB.classes.findIndex(c => c.id === id);
+          if (idx === -1) throw new Error(`Không tìm thấy lớp học với ID = ${id}`);
+          if (method === 'PATCH') {
+            fallbackDB.classes[idx] = { ...fallbackDB.classes[idx], ...body };
+            return fallbackDB.classes[idx];
+          }
+          if (method === 'DELETE') {
+            if (fallbackDB.students.some(s => s.class_id === id)) throw new Error('Không thể xóa lớp vì đang có sinh viên thuộc lớp này (Ràng buộc khóa ngoại).');
+            fallbackDB.classes.splice(idx, 1);
+            return { message: 'Đã xóa lớp học thành công' };
+          }
+        }
+      }
+
+      if (path.startsWith('/api/students')) {
+        const idMatch = path.match(/^\/api\/students\/(\d+)$/);
+        const enrich = s => {
+          const cls = fallbackDB.classes.find(c => c.id === s.class_id);
+          return { ...s, class_code: cls ? cls.class_code : '', class_name: cls ? cls.class_name : '' };
+        };
+        if (method === 'GET' && !idMatch) {
+          const classId = parsedUrl.searchParams.get('class_id');
+          return fallbackDB.students
+            .filter(s => (!classId || s.class_id === +classId) && (!search || s.student_code.toLowerCase().includes(search) || s.full_name.toLowerCase().includes(search) || s.email.toLowerCase().includes(search)))
+            .map(enrich);
+        }
+        if (method === 'GET' && idMatch) {
+          const st = fallbackDB.students.find(s => s.id === +idMatch[1]);
+          if (!st) throw new Error('Không tìm thấy sinh viên (404)');
+          return enrich(st);
+        }
+        if (method === 'POST') {
+          const code = (body.student_code || '').toUpperCase();
+          if (fallbackDB.students.some(s => s.student_code === code)) throw new Error(`Mã sinh viên '${code}' đã tồn tại`);
+          const newItem = { id: Date.now(), ...body, student_code: code };
+          fallbackDB.students.push(newItem);
+          return enrich(newItem);
+        }
+        if (idMatch) {
+          const id = +idMatch[1];
+          const idx = fallbackDB.students.findIndex(s => s.id === id);
+          if (idx === -1) throw new Error(`Không tìm thấy sinh viên với ID = ${id}`);
+          if (method === 'PATCH') {
+            fallbackDB.students[idx] = { ...fallbackDB.students[idx], ...body };
+            return enrich(fallbackDB.students[idx]);
+          }
+          if (method === 'DELETE') {
+            if (fallbackDB.scores.some(sc => sc.student_id === id)) throw new Error('Không thể xóa sinh viên vì đã có bản ghi điểm thi (Ràng buộc khóa ngoại).');
+            fallbackDB.students.splice(idx, 1);
+            return { message: 'Đã xóa sinh viên thành công' };
+          }
+        }
+      }
+
+      if (path.startsWith('/api/subjects')) {
+        const idMatch = path.match(/^\/api\/subjects\/(\d+)$/);
+        if (method === 'GET' && !idMatch) {
+          return fallbackDB.subjects
+            .filter(s => !search || s.subject_code.toLowerCase().includes(search) || s.subject_name.toLowerCase().includes(search))
+            .map(s => ({ ...s, score_count: fallbackDB.scores.filter(sc => sc.subject_id === s.id).length }));
+        }
+        if (method === 'POST') {
+          const code = (body.subject_code || '').toUpperCase();
+          if (fallbackDB.subjects.some(s => s.subject_code === code)) throw new Error(`Mã môn học '${code}' đã tồn tại`);
+          const newItem = { id: Date.now(), ...body, subject_code: code, score_count: 0 };
+          fallbackDB.subjects.push(newItem);
+          return newItem;
+        }
+        if (idMatch) {
+          const id = +idMatch[1];
+          const idx = fallbackDB.subjects.findIndex(s => s.id === id);
+          if (idx === -1) throw new Error(`Không tìm thấy môn học với ID = ${id}`);
+          if (method === 'PATCH') {
+            fallbackDB.subjects[idx] = { ...fallbackDB.subjects[idx], ...body };
+            return fallbackDB.subjects[idx];
+          }
+          if (method === 'DELETE') {
+            if (fallbackDB.scores.some(sc => sc.subject_id === id)) throw new Error('Không thể xóa môn học vì đã có bản ghi điểm thi (Ràng buộc khóa ngoại).');
+            fallbackDB.scores.splice(idx, 1);
+            return { message: 'Đã xóa môn học thành công' };
+          }
+        }
+      }
+
+      if (path.startsWith('/api/scores')) {
+        const idMatch = path.match(/^\/api\/scores\/(\d+)$/);
+        const enrichScore = sc => {
+          const st = fallbackDB.students.find(s => s.id === sc.student_id) || {};
+          const cls = fallbackDB.classes.find(c => c.id === st.class_id) || {};
+          const sub = fallbackDB.subjects.find(s => s.id === sc.subject_id) || {};
+          return {
+            ...sc,
+            student_code: st.student_code || '',
+            student_name: st.full_name || '',
+            class_code: cls.class_code || '',
+            subject_code: sub.subject_code || '',
+            subject_name: sub.subject_name || '',
+            credits: sub.credits || 0,
+            grade_rank: classifyRankLocal(sc.final_score),
+            passed: sc.final_score >= 4.0
+          };
+        };
+        if (method === 'GET' && !idMatch) {
+          const studentId = parsedUrl.searchParams.get('student_id');
+          const subjectId = parsedUrl.searchParams.get('subject_id');
+          return fallbackDB.scores
+            .map(enrichScore)
+            .filter(sc => (!studentId || sc.student_id === +studentId) && (!subjectId || sc.subject_id === +subjectId) && (!search || sc.student_code.toLowerCase().includes(search) || sc.student_name.toLowerCase().includes(search) || sc.subject_name.toLowerCase().includes(search)));
+        }
+        if (method === 'GET' && idMatch) {
+          const sc = fallbackDB.scores.find(s => s.id === +idMatch[1]);
+          if (!sc) throw new Error('Không tìm thấy bản ghi điểm (404)');
+          return enrichScore(sc);
+        }
+        if (method === 'POST') {
+          if (fallbackDB.scores.some(s => s.student_id === body.student_id && s.subject_id === body.subject_id && s.semester === body.semester)) {
+            throw new Error('Sinh viên đã có điểm môn học này trong học kỳ đã chọn');
+          }
+          const finalScore = +(body.process_score * 0.4 + body.exam_score * 0.6).toFixed(2);
+          const newItem = { id: Date.now(), ...body, final_score: finalScore };
+          fallbackDB.scores.push(newItem);
+          return enrichScore(newItem);
+        }
+        if (idMatch) {
+          const id = +idMatch[1];
+          const idx = fallbackDB.scores.findIndex(s => s.id === id);
+          if (idx === -1) throw new Error('Không tìm thấy bản ghi điểm');
+          if (method === 'PATCH') {
+            const updated = { ...fallbackDB.scores[idx], ...body };
+            updated.final_score = +(updated.process_score * 0.4 + updated.exam_score * 0.6).toFixed(2);
+            fallbackDB.scores[idx] = updated;
+            return enrichScore(updated);
+          }
+          if (method === 'DELETE') {
+            fallbackDB.scores.splice(idx, 1);
+            return { message: 'Đã xóa bản ghi điểm thành công' };
+          }
+        }
+      }
+      return {};
+    }
+
     // =========================================================================
     // TIỆN ÍCH HIỂN THỊ THÔNG BÁO (TOAST) & XỬ LÝ LỖI API
     // =========================================================================
@@ -1176,13 +1410,27 @@
     }
 
     async function apiRequest(url, options = {}) {
+      if (useCloudFallback) {
+        return handleFallbackRequest(url, options);
+      }
+
       const defaultHeaders = { 'Content-Type': 'application/json' };
       const config = {
         ...options,
         headers: { ...defaultHeaders, ...(options.headers || {}) },
       };
 
-      const response = await fetch(url, config);
+      let response;
+      try {
+        response = await fetch(`${API_BASE}${url}`, config);
+      } catch (networkErr) {
+        if (IS_GITHUB_PAGES) {
+          useCloudFallback = true;
+          return handleFallbackRequest(url, options);
+        }
+        throw networkErr;
+      }
+
       let data = null;
       try {
         data = await response.json();

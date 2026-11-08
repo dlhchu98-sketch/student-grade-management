@@ -106,6 +106,7 @@ Base = declarative_base()
 # ==============================================================================
 class ClassModel(Base):
     __tablename__ = "classes"
+    __table_args__ = {"implicit_returning": False}
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     class_code = Column(String(50), unique=True, nullable=False, index=True)
@@ -118,6 +119,7 @@ class ClassModel(Base):
 
 class StudentModel(Base):
     __tablename__ = "students"
+    __table_args__ = {"implicit_returning": False}
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     student_code = Column(String(50), unique=True, nullable=False, index=True)
@@ -134,6 +136,7 @@ class StudentModel(Base):
 
 class SubjectModel(Base):
     __tablename__ = "subjects"
+    __table_args__ = {"implicit_returning": False}
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     subject_code = Column(String(50), unique=True, nullable=False, index=True)
@@ -148,6 +151,7 @@ class ScoreModel(Base):
     __tablename__ = "scores"
     __table_args__ = (
         UniqueConstraint("student_id", "subject_id", "semester", name="uq_student_subject_semester"),
+        {"implicit_returning": False},
     )
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)

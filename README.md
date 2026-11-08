@@ -31,15 +31,23 @@ Hệ thống quản lý giáo dục toàn diện được xây dựng với **Fa
 
 ```text
 student-grade-management/
-├── main.py              # Backend FastAPI, SQLAlchemy Models, Pydantic Schemas, RESTful APIs & StaticFiles
-├── init_db.sql          # Script DDL SQL Server tham khảo (tự động tạo khi khởi chạy main.py)
-├── test_api.py          # Bộ kiểm thử tích hợp tự động 31 kịch bản (CRUD, PK, FK, Duplicate, 404, SQL Sync)
-├── requirements.txt     # Danh sách các thư viện Python cần thiết
-├── .env.example         # File mẫu hướng dẫn cấu hình kết nối SQL Server
-├── .gitignore           # Loại trừ file nhạy cảm (.env, __pycache__, .venv)
-├── README.md            # Tài liệu hướng dẫn cài đặt và chạy dự án
-└── static/
-    └── index.html       # Giao diện người dùng (HTML5 + CSS3 + Vanilla JS Fetch API)
+├── main.py                              # Backend FastAPI, SQLAlchemy Models, Pydantic Schemas, RESTful APIs & StaticFiles
+├── static/
+│   └── index.html                       # Giao diện người dùng (HTML5 + CSS3 + Vanilla JS Fetch API)
+├── 01_create_database.sql               # DDL khởi tạo Database StudentGradeManagementDB trên SQL Server
+├── 02_create_tables.sql                 # DDL tạo 4 bảng (3NF) + PK, FK, UNIQUE, CHECK, DEFAULT constraints
+├── 03_insert_sample_data.sql            # DML chèn dữ liệu mẫu có tính liên kết (Lớp, Môn, Sinh viên, Điểm)
+├── 04_stored_procedures.sql             # 5 Stored Procedures xử lý nghiệp vụ & thống kê
+├── 05_functions.sql                     # 4 User-Defined Functions (Scalar & Inline Table-Valued UDF)
+├── 06_triggers.sql                      # 4 DML Triggers đa dòng (Multi-row inserted/deleted) kiểm soát toàn vẹn
+├── 07_transactions.sql                  # 3 Stored Procedures Giao dịch (BEGIN TRAN, TRY...CATCH, COMMIT/ROLLBACK)
+├── 08_test_database.sql                 # Bộ kiểm thử tự động 20 kịch bản T-SQL trên SSMS 22
+├── DATABASE_DESIGN_AND_SSMS22_GUIDE.md  # Tài liệu ERD, Lược đồ quan hệ, Chuẩn hóa 3NF & Hướng dẫn SSMS 22
+├── test_api.py                          # Bộ kiểm thử tích hợp tự động 31 kịch bản FastAPI + SQL Server
+├── requirements.txt                     # Danh sách các thư viện Python cần thiết
+├── .env.example                         # File mẫu hướng dẫn cấu hình kết nối SQL Server
+├── .gitignore                           # Loại trừ file nhạy cảm (.env, __pycache__, .venv)
+└── README.md                            # Tài liệu hướng dẫn cài đặt và chạy dự án
 ```
 
 ---

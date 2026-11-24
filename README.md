@@ -4,22 +4,19 @@ Hệ thống quản lý giáo dục toàn diện được xây dựng với **Fa
 
 ---
 
-## ✨ Tính năng Chính
+## ✨ Tính năng Chính (Phiên bản Nâng cấp Design System & Phân quyền 3 Đối tượng)
 
-1. **Dashboard Tổng quan:**
-   - Thống kê trực tiếp từ SQL Server: Tổng số Sinh viên, Lớp học, Môn học, Bản ghi Điểm thi, Điểm trung bình toàn trường và Tỷ lệ qua môn (%).
-   - Biểu đồ thanh phân loại kết quả học tập: Xuất sắc/Giỏi (`A`), Khá (`B`), Trung bình (`C`), Trung bình yếu/Kém (`D/F`).
-   - Bảng cập nhật kết quả điểm thi mới nhất.
-2. **Quản lý Lớp học (`/api/classes`):**
-   - Xem danh sách kèm sĩ số thực tế, tìm kiếm, thêm mới, chỉnh sửa (`PATCH`), xóa (`DELETE`).
-3. **Quản lý Sinh viên (`/api/students`):**
-   - Xem danh sách, tìm kiếm đa tiêu chí (mã SV, họ tên, email, quê quán), lọc theo lớp học, thêm mới, cập nhật (`PATCH`), xóa (`DELETE`).
-4. **Quản lý Môn học (`/api/subjects`):**
-   - Xem danh sách kèm số lượng điểm đã nhập, tìm kiếm, thêm mới, cập nhật (`PATCH`), xóa (`DELETE`).
-5. **Quản lý Điểm thi (`/api/scores`):**
-   - Nhập điểm quá trình (40%) và điểm thi (60%), tự động tính điểm tổng kết và xếp loại học lực.
-   - Tìm kiếm và lọc điểm theo từng sinh viên hoặc môn học, cập nhật (`PATCH`), xóa (`DELETE`).
-6. **Kiểm tra Toàn vẹn Dữ liệu Nghiêm ngặt:**
+1. **Cổng Đăng nhập & Phân quyền 3 Đối tượng (Frontend + Backend API `403`):**
+   - **Phòng Đào tạo / Quản trị viên (`ADMIN`):** `admin` / `admin123` — Toàn quyền quản lý 12 phân hệ & tài khoản.
+   - **Giảng viên (`LECTURER`):** `gv.minh` / `gv123` (hoặc `gv.ha` / `gv123`) — Theo dõi lớp phụ trách, nhập/sửa điểm, cập nhật tư vấn cảnh báo học vụ.
+   - **Sinh viên (`STUDENT`):** `SV2024001` / `sv123` (hoặc `SV2024006` / `sv123`) — Dashboard cá nhân, Chương trình đào tạo, Đăng ký học phần (kiểm tra sĩ số & tiên quyết), Bảng điểm GPA hệ 10 & hệ 4, Cảnh báo học vụ cá nhân.
+2. **Giao diện Sidebar Cố định Bên trái & Bộ nhận diện Đại học (`#C62828` – `#DCEBFA`):**
+   - Sidebar cố định bên trái (thu gọn icon-only + tooltip, chuyển menu trượt trên mobile), nội dung bên phải không bị che khuất.
+   - Đồng bộ toàn bộ 12 trang chức năng: Dashboard (kèm thẻ *Tình hình học tập*), Quản lý Sinh viên (phân trang), Khoa–Ngành/Lớp học, Học phần, Chương trình đào tạo, Học kỳ & Lớp học phần, Đăng ký học phần, Quản lý điểm, Kết quả học tập & GPA (10/4), Cảnh báo học vụ, Tài khoản & Phân quyền, Cài đặt.
+3. **Báo cáo & Slide Thuyết trình Đồng bộ:**
+   - [BAO_CAO_DO_AN.pptx](BAO_CAO_DO_AN.pptx) (20 slide 16:9 đồng bộ màu sắc, sơ đồ ERD/Use Case/Kiến trúc, biểu đồ thật).
+   - [SLIDE_THUYET_TRINH.pdf](SLIDE_THUYET_TRINH.pdf) & [BAO_CAO_DO_AN.md](BAO_CAO_DO_AN.md).
+4. **Kiểm tra Toàn vẹn Dữ liệu Nghiêm ngặt (SQL Server + FastAPI Pydantic):**
    - **Khóa chính (Primary Key):** Tự tăng (`IDENTITY(1,1)`), trả về `404 Not Found` khi truy vấn/sửa/xóa ID không tồn tại.
    - **Khóa ngoại (Foreign Key):** Kiểm tra sự tồn tại của `class_id`, `student_id`, `subject_id` khi thêm/sửa (`400 Bad Request`), và chặn xóa Lớp học/Sinh viên/Môn học đang có dữ liệu phụ thuộc (`400 Bad Request`).
    - **Dữ liệu trùng lặp (Unique Constraints):** Chống trùng `class_code`, `student_code`, `email`, `subject_code`, và bộ ba `(student_id, subject_id, semester)` (`409 Conflict`).

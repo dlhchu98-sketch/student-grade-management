@@ -19,6 +19,8 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Test cache
+# Test cache & local fallback database
 .pytest_cache/
 .coverage
+*.db
+*.sqlite3

@@ -2722,10 +2722,326 @@
       setTimeout(() => { if (toast.parentElement) toast.remove(); }, 4200);
     }
 
+    // =========================================================================
+    // HỖ TRỢ GITHUB PAGES STATIC MODE (CHỈ KÍCH HOẠT KHI MỞ TỪ GITHUB.IO
+    // MÀ KHÔNG CÓ BACKEND LOCAL CHẠY; TẠI LOCALHOST LUÔN GỌI API THẬT)
+    // =========================================================================
+    const IS_STATIC_HOST = window.location.hostname.endsWith('github.io') || window.location.protocol === 'file:';
+    const API_BASE = IS_STATIC_HOST ? 'http://127.0.0.1:8000' : '';
+    let useGitHubDemoMode = false;
+
+    const ghRoleMeta = {
+      ADMIN:    { label: 'Quản trị viên / Phòng Đào tạo', short_label: 'Phòng Đào tạo' },
+      LECTURER: { label: 'Giảng viên', short_label: 'Giảng viên' },
+      STUDENT:  { label: 'Sinh viên', short_label: 'Sinh viên' },
+    };
+
+    const ghDB = {
+      accounts: [
+        { id: 1, username: 'admin', password: 'admin123', full_name: 'Nguyễn Thu Trang', role: 'ADMIN', email: 'daotao@university.edu.vn', department: 'Phòng Đào tạo Đại học', student_id: null, assigned_classes: ['ALL'], is_active: true },
+        { id: 2, username: 'gv.minh', password: 'gv123', full_name: 'TS. Nguyễn Văn Minh', role: 'LECTURER', email: 'minh.nv@university.edu.vn', department: 'Khoa Công nghệ thông tin', student_id: null, assigned_classes: ['CNTT01-K18', 'ATTT01-K18'], is_active: true },
+        { id: 3, username: 'gv.ha', password: 'gv123', full_name: 'ThS. Trần Thị Thu Hà', role: 'LECTURER', email: 'ha.ttt@university.edu.vn', department: 'Khoa Hệ thống thông tin', student_id: null, assigned_classes: ['CNTT02-K18', 'KHDL01-K18'], is_active: true },
+        { id: 4, username: 'SV2024001', password: 'sv123', full_name: 'Nguyễn Minh Quân', role: 'STUDENT', email: 'quan.nm24001@student.edu.vn', department: 'Công nghệ phần mềm 01 - K18', student_id: 1, assigned_classes: ['CNTT01-K18'], is_active: true },
+        { id: 5, username: 'SV2024006', password: 'sv123', full_name: 'Vũ Phương Thảo', role: 'STUDENT', email: 'thao.vp24006@student.edu.vn', department: 'An toàn thông tin 01 - K18', student_id: 6, assigned_classes: ['ATTT01-K18'], is_active: true },
+      ],
+      classes: [
+        { id: 1, class_code: 'CNTT01-K18', class_name: 'Công nghệ phần mềm 01 - K18', academic_year: '2024-2028', homeroom_teacher: 'TS. Nguyễn Văn Minh' },
+        { id: 2, class_code: 'CNTT02-K18', class_name: 'Hệ thống thông tin 02 - K18', academic_year: '2024-2028', homeroom_teacher: 'ThS. Trần Thị Thu Hà' },
+        { id: 3, class_code: 'KHDL01-K18', class_name: 'Khoa học dữ liệu & AI - K18', academic_year: '2024-2028', homeroom_teacher: 'PGS.TS. Lê Hoàng Nam' },
+        { id: 4, class_code: 'ATTT01-K18', class_name: 'An toàn thông tin 01 - K18', academic_year: '2024-2028', homeroom_teacher: 'TS. Phạm Quốc Bảo' },
+      ],
+      subjects: [
+        { id: 1, subject_code: 'IT3010', subject_name: 'Hệ quản trị Cơ sở dữ liệu SQL Server', credits: 3, department: 'Hệ thống thông tin' },
+        { id: 2, subject_code: 'IT3020', subject_name: 'Phát triển Ứng dụng Web với FastAPI', credits: 3, department: 'Công nghệ phần mềm' },
+        { id: 3, subject_code: 'IT3030', subject_name: 'Cấu trúc dữ liệu và Giải thuật', credits: 4, department: 'Khoa học máy tính' },
+        { id: 4, subject_code: 'IT3040', subject_name: 'Trí tuệ nhân tạo & Học máy', credits: 3, department: 'Khoa học dữ liệu' },
+        { id: 5, subject_code: 'IT3050', subject_name: 'Mạng máy tính và Bảo mật', credits: 3, department: 'An toàn thông tin' },
+        { id: 6, subject_code: 'IT3060', subject_name: 'Phân tích & Thiết kế Hệ thống', credits: 3, department: 'Hệ thống thông tin' },
+      ],
+      students: [
+        { id: 1, student_code: 'SV2024001', full_name: 'Nguyễn Minh Quân', date_of_birth: '2005-03-15', gender: 'Nam', email: 'quan.nm24001@student.edu.vn', hometown: 'Hà Nội', class_id: 1 },
+        { id: 2, student_code: 'SV2024002', full_name: 'Trần Ngọc Ánh', date_of_birth: '2005-07-22', gender: 'Nữ', email: 'anh.tn24002@student.edu.vn', hometown: 'Hải Phòng', class_id: 1 },
+        { id: 3, student_code: 'SV2024003', full_name: 'Lê Hoàng Phúc', date_of_birth: '2005-11-08', gender: 'Nam', email: 'phuc.lh24003@student.edu.vn', hometown: 'Đà Nẵng', class_id: 2 },
+        { id: 4, student_code: 'SV2024004', full_name: 'Phạm Khánh Linh', date_of_birth: '2005-01-30', gender: 'Nữ', email: 'linh.pk24004@student.edu.vn', hometown: 'Nam Định', class_id: 2 },
+        { id: 5, student_code: 'SV2024005', full_name: 'Hoàng Đức Tuấn', date_of_birth: '2005-05-19', gender: 'Nam', email: 'tuan.hd24005@student.edu.vn', hometown: 'Nghệ An', class_id: 3 },
+        { id: 6, student_code: 'SV2024006', full_name: 'Vũ Phương Thảo', date_of_birth: '2005-09-12', gender: 'Nữ', email: 'thao.vp24006@student.edu.vn', hometown: 'Quảng Ninh', class_id: 4 },
+        { id: 7, student_code: 'SV2024007', full_name: 'Đỗ Gia Huy', date_of_birth: '2005-04-04', gender: 'Nam', email: 'huy.dg24007@student.edu.vn', hometown: 'Thái Bình', class_id: 1 },
+        { id: 8, student_code: 'SV2024008', full_name: 'Bùi Mai Hương', date_of_birth: '2005-12-25', gender: 'Nữ', email: 'huong.bm24008@student.edu.vn', hometown: 'Hưng Yên', class_id: 3 },
+      ],
+      scores: [
+        { id: 1, student_id: 1, subject_id: 3, semester: 'HK2-2025', process_score: 8.5, exam_score: 8.0, final_score: 8.2 },
+        { id: 2, student_id: 1, subject_id: 1, semester: 'HK1-2026', process_score: 9.0, exam_score: 8.5, final_score: 8.7 },
+        { id: 3, student_id: 1, subject_id: 2, semester: 'HK1-2026', process_score: 8.5, exam_score: 9.0, final_score: 8.8 },
+        { id: 4, student_id: 2, subject_id: 1, semester: 'HK1-2026', process_score: 8.0, exam_score: 7.5, final_score: 7.7 },
+        { id: 5, student_id: 3, subject_id: 1, semester: 'HK1-2026', process_score: 6.5, exam_score: 7.0, final_score: 6.8 },
+        { id: 6, student_id: 4, subject_id: 2, semester: 'HK1-2026', process_score: 9.5, exam_score: 9.0, final_score: 9.2 },
+        { id: 7, student_id: 5, subject_id: 4, semester: 'HK1-2026', process_score: 8.0, exam_score: 8.5, final_score: 8.3 },
+        { id: 8, student_id: 6, subject_id: 3, semester: 'HK2-2025', process_score: 3.5, exam_score: 3.0, final_score: 3.2 },
+        { id: 9, student_id: 6, subject_id: 5, semester: 'HK1-2026', process_score: 4.5, exam_score: 3.5, final_score: 3.9 },
+        { id: 10, student_id: 7, subject_id: 1, semester: 'HK1-2026', process_score: 3.0, exam_score: 2.5, final_score: 2.7 },
+        { id: 11, student_id: 8, subject_id: 4, semester: 'HK1-2026', process_score: 8.5, exam_score: 8.0, final_score: 8.2 },
+      ],
+      curriculum: [
+        { id: 1, major_name: 'Công nghệ phần mềm', cohort: 'K18 (2024-2028)', subject_id: 3, semester_plan: 2, course_group: 'Bắt buộc', prerequisite_code: null },
+        { id: 2, major_name: 'Công nghệ phần mềm', cohort: 'K18 (2024-2028)', subject_id: 1, semester_plan: 3, course_group: 'Bắt buộc', prerequisite_code: 'IT3030' },
+        { id: 3, major_name: 'Công nghệ phần mềm', cohort: 'K18 (2024-2028)', subject_id: 2, semester_plan: 3, course_group: 'Bắt buộc', prerequisite_code: 'IT3010' },
+        { id: 4, major_name: 'Hệ thống thông tin', cohort: 'K18 (2024-2028)', subject_id: 6, semester_plan: 4, course_group: 'Bắt buộc', prerequisite_code: 'IT3010' },
+        { id: 5, major_name: 'Khoa học dữ liệu & AI', cohort: 'K18 (2024-2028)', subject_id: 4, semester_plan: 3, course_group: 'Bắt buộc', prerequisite_code: 'IT3030' },
+        { id: 6, major_name: 'An toàn thông tin', cohort: 'K18 (2024-2028)', subject_id: 5, semester_plan: 3, course_group: 'Tự chọn', prerequisite_code: null },
+      ],
+      sections: [
+        { id: 1, section_code: 'LHP-IT3010-01', subject_id: 1, semester: 'HK2-2026', lecturer_name: 'TS. Nguyễn Văn Minh', schedule_text: 'Thứ 2 (Tiết 1-3)', room: 'B1-302', max_capacity: 45, prerequisite_code: 'IT3030' },
+        { id: 2, section_code: 'LHP-IT3020-01', subject_id: 2, semester: 'HK2-2026', lecturer_name: 'TS. Nguyễn Văn Minh', schedule_text: 'Thứ 3 (Tiết 4-6)', room: 'C2-204', max_capacity: 40, prerequisite_code: 'IT3010' },
+        { id: 3, section_code: 'LHP-IT3040-01', subject_id: 4, semester: 'HK2-2026', lecturer_name: 'PGS.TS. Lê Hoàng Nam', schedule_text: 'Thứ 4 (Tiết 1-3)', room: 'A1-405', max_capacity: 35, prerequisite_code: 'IT3030' },
+        { id: 4, section_code: 'LHP-IT3050-01', subject_id: 5, semester: 'HK2-2026', lecturer_name: 'TS. Phạm Quốc Bảo', schedule_text: 'Thứ 5 (Tiết 7-9)', room: 'B2-105', max_capacity: 40, prerequisite_code: null },
+        { id: 5, section_code: 'LHP-IT3060-01', subject_id: 6, semester: 'HK2-2026', lecturer_name: 'ThS. Trần Thị Thu Hà', schedule_text: 'Thứ 6 (Tiết 1-3)', room: 'C1-301', max_capacity: 30, prerequisite_code: 'IT3010' },
+      ],
+      enrollments: [
+        { id: 1, student_id: 1, section_id: 3, registered_at: '2026-11-24 10:00', status: 'Đã đăng ký' },
+        { id: 2, student_id: 2, section_id: 2, registered_at: '2026-11-24 10:15', status: 'Đã đăng ký' },
+      ],
+      warningStatus: {},
+    };
+
+    function ghSummarizeStudent(stId) {
+      const rows = ghDB.scores.filter(s => s.student_id === stId).map(sc => {
+        const sub = ghDB.subjects.find(x => x.id === sc.subject_id) || { subject_code: '', subject_name: '', credits: 3 };
+        const [ltr, g4] = calcLetterLocal(sc.final_score);
+        return { ...sc, subject_code: sub.subject_code, subject_name: sub.subject_name, credits: sub.credits, letter_grade: ltr, gpa4_score: g4, passed: sc.final_score >= 4.0 };
+      });
+      let w10 = 0, w4 = 0, tc = 0, passTC = 0, failTC = 0;
+      const semMap = {};
+      rows.forEach(r => {
+        w10 += r.final_score * r.credits; w4 += r.gpa4_score * r.credits; tc += r.credits;
+        if (r.passed) passTC += r.credits; else failTC += r.credits;
+        if (!semMap[r.semester]) semMap[r.semester] = { semester: r.semester, w10: 0, w4: 0, credits: 0, passed_credits: 0, failed_credits: 0, subjects: [] };
+        const m = semMap[r.semester];
+        m.w10 += r.final_score * r.credits; m.w4 += r.gpa4_score * r.credits; m.credits += r.credits;
+        if (r.passed) m.passed_credits += r.credits; else m.failed_credits += r.credits;
+        m.subjects.push(r);
+      });
+      const cum10 = tc ? +(w10 / tc).toFixed(2) : 0;
+      const cum4 = tc ? +(w4 / tc).toFixed(2) : 0;
+      let wl = 0, wlbl = 'Bình thường', wreason = '';
+      if (tc > 0 && (cum4 < 1.2 || failTC >= 7)) { wl = 2; wlbl = 'Cảnh báo mức 2'; wreason = `GPA hệ 4 thấp (${cum4.toFixed(2)}) / Nợ ${failTC} TC`; }
+      else if (tc > 0 && (cum4 < 2.0 || failTC >= 3)) { wl = 1; wlbl = 'Cảnh báo mức 1'; wreason = `GPA hệ 4 dưới ngưỡng (${cum4.toFixed(2)}) / Nợ ${failTC} TC`; }
+      const semesters = Object.values(semMap).map(m => ({ ...m, gpa10: +(m.w10 / (m.credits || 1)).toFixed(2), gpa4: +(m.w4 / (m.credits || 1)).toFixed(2) }));
+      return { cumulative_gpa10: cum10, cumulative_gpa4: cum4, total_credits: tc, passed_credits: passTC, failed_credits: failTC, warning_level: wl, warning_label: wlbl, warning_reason: wreason, latest_semester: semesters.length ? semesters[semesters.length - 1].semester : 'HK1-2026', semesters, scores: rows };
+    }
+
+    function ghComputeWarnings() {
+      let list = ghDB.students.map(st => {
+        const cls = ghDB.classes.find(c => c.id === st.class_id) || {};
+        const sm = ghSummarizeStudent(st.id);
+        return { student_id: st.id, student_code: st.student_code, full_name: st.full_name, class_code: cls.class_code || '', gpa10: sm.cumulative_gpa10, gpa4: sm.cumulative_gpa4, failed_credits: sm.failed_credits, warning_level: sm.warning_level, warning_label: sm.warning_label, reason: sm.warning_reason, semester: sm.latest_semester, handling_status: ghDB.warningStatus[st.id] || 'Chờ xử lý' };
+      }).filter(w => w.warning_level > 0);
+      if (currentUser?.role === 'STUDENT') list = list.filter(w => w.student_id === currentUser.student_id);
+      else if (currentUser?.role === 'LECTURER') list = list.filter(w => (currentUser.assigned_classes || []).includes(w.class_code));
+      return list;
+    }
+
+    function handleGitHubDemoRequest(url, options = {}) {
+      const method = (options.method || 'GET').toUpperCase();
+      const body = options.body ? JSON.parse(options.body) : {};
+      const parsed = new URL(url, window.location.origin);
+      const path = parsed.pathname;
+      const search = (parsed.searchParams.get('search') || '').toLowerCase();
+
+      if (path === '/api/auth/login' && method === 'POST') {
+        const acc = ghDB.accounts.find(a => a.username.toLowerCase() === (body.username || '').toLowerCase() && a.password === body.password);
+        if (!acc) throw new Error('Tên đăng nhập hoặc mật khẩu không chính xác.');
+        if (!acc.is_active) throw new Error('Tài khoản đang bị khóa.');
+        if (body.expected_role && body.expected_role.toUpperCase() !== acc.role) throw new Error(`Tài khoản không thuộc đối tượng ${body.expected_role}.`);
+        const meta = ghRoleMeta[acc.role];
+        const u = { ...acc, role_label: meta.label, role_short: meta.short_label };
+        return { access_token: `gh-demo-${acc.username}`, token_type: 'bearer', user: u };
+      }
+      if (path === '/api/auth/me') {
+        const uname = (authToken || '').replace('gh-demo-', '');
+        const acc = ghDB.accounts.find(a => a.username === uname);
+        if (!acc) throw new Error('Phiên đăng nhập hết hạn');
+        const meta = ghRoleMeta[acc.role];
+        return { ...acc, role_label: meta.label, role_short: meta.short_label };
+      }
+      if (path === '/api/auth/logout') return { message: 'Đã đăng xuất' };
+      if (path.startsWith('/api/auth/accounts')) {
+        if (currentUser?.role !== 'ADMIN') throw new Error('Không có quyền quản lý tài khoản (403).');
+        const idM = path.match(/^\/api\/auth\/accounts\/(\d+)$/);
+        if (method === 'GET') {
+          const rf = parsed.searchParams.get('role');
+          return ghDB.accounts.filter(a => !rf || a.role === rf).map(a => ({ ...a, role_short: ghRoleMeta[a.role].short_label }));
+        }
+        if (method === 'POST') {
+          if (ghDB.accounts.some(a => a.username.toLowerCase() === body.username.toLowerCase())) throw new Error('Tên đăng nhập đã tồn tại.');
+          const item = { id: Date.now(), ...body, assigned_classes: (body.assigned_classes || '').split(',').filter(Boolean), is_active: true };
+          ghDB.accounts.push(item);
+          return { ...item, role_short: ghRoleMeta[item.role].short_label };
+        }
+        if (method === 'PATCH' && idM) {
+          const a = ghDB.accounts.find(x => x.id === +idM[1]);
+          if (a) Object.assign(a, body);
+          return a;
+        }
+      }
+      if (path === '/api/stats') {
+        const warns = ghComputeWarnings();
+        const totalSc = ghDB.scores.length;
+        const avg = totalSc ? +(ghDB.scores.reduce((s, r) => s + r.final_score, 0) / totalSc).toFixed(2) : 0;
+        const passCnt = ghDB.scores.filter(r => r.final_score >= 4.0).length;
+        return {
+          total_classes: ghDB.classes.length, total_students: ghDB.students.length, total_subjects: ghDB.subjects.length,
+          total_scores: totalSc, total_sections: ghDB.sections.length, total_enrollments: ghDB.enrollments.length,
+          warning_count: warns.length, average_score: avg, pass_rate: totalSc ? +((passCnt / totalSc) * 100).toFixed(1) : 0,
+          distribution: {
+            excellent: ghDB.scores.filter(r => r.final_score >= 8.5).length,
+            good: ghDB.scores.filter(r => r.final_score >= 7.0 && r.final_score < 8.5).length,
+            average: ghDB.scores.filter(r => r.final_score >= 5.5 && r.final_score < 7.0).length,
+            weak: ghDB.scores.filter(r => r.final_score < 5.5).length,
+          },
+          students_by_class: ghDB.classes.map(c => ({ class_code: c.class_code, class_name: c.class_name, student_count: ghDB.students.filter(s => s.class_id === c.id).length })),
+          warnings_preview: warns.slice(0, 5),
+          personal_summary: currentUser?.role === 'STUDENT' ? ghSummarizeStudent(currentUser.student_id) : null,
+          database_info: { server: 'GitHub Pages Live Demo', database: 'StudentGradeManagementDB', driver: 'Browser Sync Mode' },
+        };
+      }
+      if (path.startsWith('/api/classes')) {
+        const idM = path.match(/^\/api\/classes\/(\d+)$/);
+        if (method === 'GET' && !idM) return ghDB.classes.filter(c => !search || c.class_code.toLowerCase().includes(search) || c.class_name.toLowerCase().includes(search)).map(c => ({ ...c, student_count: ghDB.students.filter(s => s.class_id === c.id).length }));
+        if (method === 'POST') { const item = { id: Date.now(), ...body, class_code: body.class_code.toUpperCase() }; ghDB.classes.push(item); return { ...item, student_count: 0 }; }
+        if (idM && method === 'PATCH') { const c = ghDB.classes.find(x => x.id === +idM[1]); Object.assign(c, body); return c; }
+        if (idM && method === 'DELETE') { if (ghDB.students.some(s => s.class_id === +idM[1])) throw new Error('Không thể xóa lớp đang có sinh viên.'); ghDB.classes = ghDB.classes.filter(x => x.id !== +idM[1]); return { message: 'Đã xóa lớp học' }; }
+      }
+      if (path.startsWith('/api/students')) {
+        const idM = path.match(/^\/api\/students\/(\d+)$/);
+        const enrich = st => { const c = ghDB.classes.find(x => x.id === st.class_id) || {}; const sm = ghSummarizeStudent(st.id); return { ...st, class_code: c.class_code || '', class_name: c.class_name || '', gpa10: sm.cumulative_gpa10, gpa4: sm.cumulative_gpa4, academic_status: sm.warning_label }; };
+        if (method === 'GET' && !idM) {
+          const cid = parsed.searchParams.get('class_id');
+          let rows = ghDB.students.map(enrich);
+          if (currentUser?.role === 'LECTURER') rows = rows.filter(r => (currentUser.assigned_classes || []).includes(r.class_code));
+          if (cid) rows = rows.filter(r => r.class_id === +cid);
+          if (search) rows = rows.filter(r => r.student_code.toLowerCase().includes(search) || r.full_name.toLowerCase().includes(search) || r.email.toLowerCase().includes(search));
+          return rows;
+        }
+        if (method === 'GET' && idM) return enrich(ghDB.students.find(x => x.id === +idM[1]));
+        if (method === 'POST') { const item = { id: Date.now(), ...body, student_code: body.student_code.toUpperCase() }; ghDB.students.push(item); return enrich(item); }
+        if (idM && method === 'PATCH') { const st = ghDB.students.find(x => x.id === +idM[1]); Object.assign(st, body); return enrich(st); }
+        if (idM && method === 'DELETE') { if (ghDB.scores.some(sc => sc.student_id === +idM[1])) throw new Error('Không thể xóa SV đã có điểm.'); ghDB.students = ghDB.students.filter(x => x.id !== +idM[1]); return { message: 'Đã xóa sinh viên' }; }
+      }
+      if (path.startsWith('/api/subjects')) {
+        const idM = path.match(/^\/api\/subjects\/(\d+)$/);
+        if (method === 'GET' && !idM) return ghDB.subjects.filter(s => !search || s.subject_code.toLowerCase().includes(search) || s.subject_name.toLowerCase().includes(search)).map(s => ({ ...s, score_count: ghDB.scores.filter(sc => sc.subject_id === s.id).length }));
+        if (method === 'POST') { const item = { id: Date.now(), ...body, subject_code: body.subject_code.toUpperCase() }; ghDB.subjects.push(item); return { ...item, score_count: 0 }; }
+        if (idM && method === 'PATCH') { const s = ghDB.subjects.find(x => x.id === +idM[1]); Object.assign(s, body); return s; }
+        if (idM && method === 'DELETE') { if (ghDB.scores.some(sc => sc.subject_id === +idM[1])) throw new Error('Không thể xóa môn đã có điểm.'); ghDB.subjects = ghDB.subjects.filter(x => x.id !== +idM[1]); return { message: 'Đã xóa học phần' }; }
+      }
+      if (path.startsWith('/api/scores')) {
+        const idM = path.match(/^\/api\/scores\/(\d+)$/);
+        const enrich = sc => {
+          const st = ghDB.students.find(x => x.id === sc.student_id) || {};
+          const cls = ghDB.classes.find(x => x.id === st.class_id) || {};
+          const sub = ghDB.subjects.find(x => x.id === sc.subject_id) || {};
+          const [ltr, g4] = calcLetterLocal(sc.final_score);
+          return { ...sc, student_code: st.student_code || '', student_name: st.full_name || '', class_code: cls.class_code || '', subject_code: sub.subject_code || '', subject_name: sub.subject_name || '', credits: sub.credits || 3, letter_grade: ltr, gpa4_score: g4, passed: sc.final_score >= 4.0 };
+        };
+        if (method === 'GET' && !idM) {
+          let rows = ghDB.scores.map(enrich);
+          const sem = parsed.searchParams.get('semester');
+          const sid = parsed.searchParams.get('subject_id');
+          if (currentUser?.role === 'STUDENT') rows = rows.filter(r => r.student_id === currentUser.student_id);
+          else if (currentUser?.role === 'LECTURER') rows = rows.filter(r => (currentUser.assigned_classes || []).includes(r.class_code));
+          if (sem) rows = rows.filter(r => r.semester === sem);
+          if (sid) rows = rows.filter(r => r.subject_id === +sid);
+          if (search) rows = rows.filter(r => r.student_code.toLowerCase().includes(search) || r.student_name.toLowerCase().includes(search) || r.subject_name.toLowerCase().includes(search));
+          return rows;
+        }
+        if (method === 'GET' && idM) return enrich(ghDB.scores.find(x => x.id === +idM[1]));
+        if (method === 'POST') {
+          const f = +(body.process_score * 0.4 + body.exam_score * 0.6).toFixed(2);
+          const item = { id: Date.now(), ...body, final_score: f }; ghDB.scores.push(item); return enrich(item);
+        }
+        if (idM && method === 'PATCH') {
+          const sc = ghDB.scores.find(x => x.id === +idM[1]);
+          Object.assign(sc, body); sc.final_score = +(sc.process_score * 0.4 + sc.exam_score * 0.6).toFixed(2); return enrich(sc);
+        }
+        if (idM && method === 'DELETE') { ghDB.scores = ghDB.scores.filter(x => x.id !== +idM[1]); return { message: 'Đã xóa điểm' }; }
+      }
+      if (path === '/api/curriculum') {
+        if (method === 'POST') { ghDB.curriculum.push({ id: Date.now(), ...body }); return { message: 'Đã thêm vào CTĐT' }; }
+        const major = parsed.searchParams.get('major');
+        return ghDB.curriculum.filter(c => !major || c.major_name === major).map(c => {
+          const sub = ghDB.subjects.find(x => x.id === c.subject_id) || {};
+          return { ...c, subject_code: sub.subject_code || '', subject_name: sub.subject_name || '', credits: sub.credits || 3 };
+        });
+      }
+      if (path === '/api/sections') {
+        if (method === 'POST') { ghDB.sections.push({ id: Date.now(), ...body }); return { message: 'Đã mở lớp học phần' }; }
+        const stId = currentUser?.role === 'STUDENT' ? currentUser.student_id : null;
+        const passedCodes = new Set(stId ? ghDB.scores.filter(sc => sc.student_id === stId && sc.final_score >= 4.0).map(sc => (ghDB.subjects.find(x => x.id === sc.subject_id) || {}).subject_code) : []);
+        return ghDB.sections.map(s => {
+          const sub = ghDB.subjects.find(x => x.id === s.subject_id) || {};
+          const enrolled = ghDB.enrollments.filter(e => e.section_id === s.id).length;
+          return { ...s, subject_code: sub.subject_code || '', subject_name: sub.subject_name || '', credits: sub.credits || 3, enrolled_count: enrolled, remaining_slots: Math.max(0, s.max_capacity - enrolled), is_enrolled: stId ? ghDB.enrollments.some(e => e.student_id === stId && e.section_id === s.id) : false, prerequisite_met: !s.prerequisite_code || !stId || passedCodes.has(s.prerequisite_code) };
+        });
+      }
+      if (path.startsWith('/api/enrollments')) {
+        const idM = path.match(/^\/api\/enrollments\/(\d+)$/);
+        if (method === 'GET') {
+          let rows = ghDB.enrollments.map(e => {
+            const st = ghDB.students.find(x => x.id === e.student_id) || {};
+            const sec = ghDB.sections.find(x => x.id === e.section_id) || {};
+            const sub = ghDB.subjects.find(x => x.id === sec.subject_id) || {};
+            return { ...e, student_code: st.student_code || '', student_name: st.full_name || '', section_code: sec.section_code || '', schedule_text: sec.schedule_text || '', room: sec.room || '', subject_name: sub.subject_name || '', credits: sub.credits || 3 };
+          });
+          if (currentUser?.role === 'STUDENT') rows = rows.filter(r => r.student_id === currentUser.student_id);
+          return rows;
+        }
+        if (method === 'POST') {
+          const stId = currentUser?.role === 'STUDENT' ? currentUser.student_id : (body.student_id || 1);
+          const sec = ghDB.sections.find(x => x.id === body.section_id);
+          if (ghDB.enrollments.some(e => e.student_id === stId && e.section_id === sec.id)) throw new Error('Bạn đã đăng ký lớp học phần này.');
+          if (sec.prerequisite_code) {
+            const ok = ghDB.scores.some(sc => sc.student_id === stId && sc.final_score >= 4.0 && (ghDB.subjects.find(x => x.id === sc.subject_id) || {}).subject_code === sec.prerequisite_code);
+            if (!ok) throw new Error(`Không đủ điều kiện tiên quyết: Cần đạt học phần ${sec.prerequisite_code} trước.`);
+          }
+          ghDB.enrollments.push({ id: Date.now(), student_id: stId, section_id: sec.id, registered_at: '2026-11-24 19:55', status: 'Đã đăng ký' });
+          return { message: `Đăng ký thành công lớp ${sec.section_code}` };
+        }
+        if (method === 'DELETE' && idM) { ghDB.enrollments = ghDB.enrollments.filter(x => x.id !== +idM[1]); return { message: 'Đã hủy đăng ký học phần' }; }
+      }
+      if (path === '/api/results') {
+        let sts = ghDB.students.map(st => ({ ...st, class_code: (ghDB.classes.find(c => c.id === st.class_id) || {}).class_code || '' }));
+        if (currentUser?.role === 'STUDENT') sts = sts.filter(s => s.id === currentUser.student_id);
+        else if (currentUser?.role === 'LECTURER') sts = sts.filter(s => (currentUser.assigned_classes || []).includes(s.class_code));
+        const reqId = parsed.searchParams.get('student_id');
+        const sel = (reqId ? sts.find(s => s.id === +reqId) : sts[0]) || sts[0];
+        return { students: sts, selected: sel ? { ...sel, ...ghSummarizeStudent(sel.id) } : null };
+      }
+      if (path.startsWith('/api/warnings')) {
+        const idM = path.match(/^\/api\/warnings\/(\d+)$/);
+        if (method === 'PATCH' && idM) { ghDB.warningStatus[+idM[1]] = body.handling_status; return { message: 'Đã cập nhật' }; }
+        const lv = parsed.searchParams.get('level');
+        const items = ghComputeWarnings().filter(w => !lv || w.warning_level === +lv);
+        return { summary: { total: items.length, level1: items.filter(x => x.warning_level === 1).length, level2: items.filter(x => x.warning_level === 2).length, resolved: items.filter(x => x.handling_status === 'Đã tư vấn học vụ').length }, items };
+      }
+      return {};
+    }
+
     async function apiRequest(url, options = {}) {
+      if (useGitHubDemoMode) {
+        return handleGitHubDemoRequest(url, options);
+      }
       const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
       if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-      const res = await fetch(url, { ...options, headers });
+      let res;
+      try {
+        res = await fetch(`${API_BASE}${url}`, { ...options, headers });
+      } catch (netErr) {
+        if (IS_STATIC_HOST) {
+          useGitHubDemoMode = true;
+          return handleGitHubDemoRequest(url, options);
+        }
+        throw netErr;
+      }
       let data = null;
       try { data = await res.json(); } catch (_) {}
 
